@@ -281,7 +281,7 @@ void Esp32CamWebStreamQueue::initCamera() {
   }
 
   config.pixel_format = PIXFORMAT_JPEG;
-  config.frame_size = FRAMESIZE_VGA;
+  config.frame_size = FRAMESIZE_SVGA;
   config.jpeg_quality = 10;
   config.fb_count = 2;
 
