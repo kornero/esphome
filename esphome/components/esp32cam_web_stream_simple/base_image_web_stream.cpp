@@ -12,6 +12,7 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
     // Clear old.
     if (this->webStillFb_ != NULL) {
       this->base_esp32cam_->return_fb_nowait(this->webStillFb_);
+      this->webStillFb_ = NULL;
     }
 
     this->webStillFb_ = this->base_esp32cam_->get_fb();
@@ -32,9 +33,8 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
 
       if (this->webStillFb_ != NULL) {
         this->base_esp32cam_->return_fb_nowait(this->webStillFb_);
+        this->webStillFb_ = NULL;
       }
-
-      this->webStillFb_ = NULL;
     });
 
     req->send(response);
@@ -113,6 +113,11 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
   AsyncWebServerResponse *response =
       req->beginChunkedResponse(STREAM_CONTENT_TYPE, [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
         try {
+          // Wait for still image.
+          if (this->webStillFb_ != NULL) {
+            return RESPONSE_TRY_AGAIN;
+          }
+
           if (this->webChunkSent_ == -1) {
             while (millis() - this->webChunkLastUpdate_ < this->maxRate_) {
               delay(10);
