@@ -16,6 +16,8 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
       return;
     }
 
+    this->reset_still();
+
     this->isStill = pdTRUE;
 
     if (!this->webChunkFb_) {
@@ -298,7 +300,7 @@ AsyncWebServerResponse *BaseImageWebStream::still(AsyncWebServerRequest *req) {
 
           return i;
         } catch (...) {
-          ESP_LOGE(TAG_, "EXCEPTION !");
+          ESP_LOGE(TAG_, "[STILL] EXCEPTION !");
           return 0;
         }
       });
