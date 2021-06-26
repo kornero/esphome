@@ -120,6 +120,9 @@ camera_fb_t *BaseEsp32Cam::get_fb_nowait() {
   camera_fb_t *fb;
   if (xQueueReceive(global_base_esp32cam->queue_get, &fb, 0L) != pdTRUE) {
     ESP_LOGD(TAG, "get_fb_nowait: null");
+
+    xSemaphoreGive(this->lock);
+
     return nullptr;
   }
 
