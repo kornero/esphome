@@ -11,9 +11,6 @@ class BaseEsp32Cam {
  public:
   QueueHandle_t queue_get;
   QueueHandle_t queue_return;
-  SemaphoreHandle_t lock;
-  SemaphoreHandle_t lock_get;
-  SemaphoreHandle_t lock_return;
 
   void setup();
   void init_camera();

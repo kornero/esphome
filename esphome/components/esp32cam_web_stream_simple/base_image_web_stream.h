@@ -49,7 +49,8 @@ class BaseImageWebStream : public AsyncWebHandler {
 
   void handleRequest(AsyncWebServerRequest *req) override;
 
-  void reset_steps();
+  void reset_stream();
+  void reset_still();
 
   void dump_config();
 
@@ -70,7 +71,8 @@ class BaseImageWebStream : public AsyncWebHandler {
   size_t webChunkSent_;
   uint32_t webChunkLastUpdate_;
 
-  camera_fb_t *webStillFb_;
+  BaseType_t isStream;
+  BaseType_t isStill;
 
   AsyncWebServerResponse *stream(AsyncWebServerRequest *request);
   AsyncWebServerResponse *still(AsyncWebServerRequest *request);

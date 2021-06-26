@@ -9,16 +9,24 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
   ESP_LOGI(TAG_, "Handle request.");
 
   if (req->url() == this->pathStill_) {
-    // Clear old.
-    if (this->webStillFb_ != NULL) {
-      this->base_esp32cam_->return_fb_nowait(this->webStillFb_);
-      this->webStillFb_ = NULL;
+    if (this->isStill == pdTRUE) {
+      ESP_LOGW(this->TAG_, "Already still image!");
+      req->send(409, "text/plain", "Already still image!");
+
+      return;
     }
 
-    this->webStillFb_ = this->base_esp32cam_->get_fb();
-    if (this->webStillFb_ == NULL) {
+    this->isStill = pdTRUE;
+
+    if (!this->webChunkFb_) {
+      this->webChunkFb_ = this->base_esp32cam_->get_fb();
+    }
+
+    if (!this->webChunkFb_) {
       ESP_LOGE(TAG_, "Can't get image for still.");
       req->send(500, "text/plain", "Can't get image for still.");
+
+      this->isStill = pdFALSE;
 
       return;
     }
@@ -31,39 +39,45 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
     req->onDisconnect([this]() -> void {
       ESP_LOGI(TAG_, "Disconnected still image.");
 
-      if (this->webStillFb_ != NULL) {
-        this->base_esp32cam_->return_fb_nowait(this->webStillFb_);
-        this->webStillFb_ = NULL;
-      }
+      this->reset_still();
     });
 
     req->send(response);
 
     return;
-  } else {
-    if (millis() - this->webChunkLastUpdate_ < 5000) {
+  }
+
+  if (req->url() == this->pathStream_) {
+    if (this->isStream == pdTRUE) {
       ESP_LOGW(this->TAG_, "Already streaming!");
       req->send(409, "text/plain", "Already streaming!");
 
       return;
-    } else {
+    }
+
       digitalWrite(33, LOW);  // Turn on
 
-      this->reset_steps();
+      this->reset_stream();
+
+      this->isStream = pdTRUE;
 
       AsyncWebServerResponse *response = this->stream(req);
       response->addHeader("Access-Control-Allow-Origin", "*");
       req->onDisconnect([this]() -> void {
         ESP_LOGI(TAG_, "Disconnected.");
 
-        this->reset_steps();
+        this->reset_stream();
 
         digitalWrite(33, HIGH);  // Turn off
       });
 
       req->send(response);
-    }
+
+      return;
   }
+
+  ESP_LOGW(this->TAG_, "Unknown request!");
+  req->send(404, "text/plain", "Unknown request!");
 }
 
 void BaseImageWebStream::setup() {
@@ -81,24 +95,36 @@ void BaseImageWebStream::setup() {
   this->webChunkSent_ = 0;
   this->webChunkLastUpdate_ = 0;
 
-  this->webStillFb_ = nullptr;
+  this->isStream = pdFALSE;
+  this->isStill = pdFALSE;
 
   this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
 
   this->base_web_server_->add_handler(this);
 }
 
-void BaseImageWebStream::reset_steps() {
+void BaseImageWebStream::reset_stream() {
   // Clear from old stream.
-  if (this->webChunkFb_ != NULL) {
+  if (!this->webChunkFb_) {
     this->base_esp32cam_->return_fb_nowait(this->webChunkFb_);
   }
-
-  this->webChunkFb_ = NULL;
 
   this->webChunkSent_ = -1;
   this->webChunkStep_ = 0;
   this->webChunkLastUpdate_ = millis();
+
+  this->isStream = pdFALSE;
+}
+
+void BaseImageWebStream::reset_still() {
+  // Clear from old stream.
+  if (this->isStream == pdFALSE) {
+  if (!this->webChunkFb_) {
+    this->base_esp32cam_->return_fb_nowait(this->webChunkFb_);
+  }
+  }
+
+  this->isStill = pdFALSE;
 }
 
 void BaseImageWebStream::dump_config() {
@@ -108,7 +134,7 @@ void BaseImageWebStream::dump_config() {
     ESP_LOGCONFIG(TAG_, "PSRAM not found.");
   }
 
-  ESP_LOGCONFIG(TAG_, "Max FPS %d.", ESP32CAM_WEB_CHUNK_MAX_FPS);
+  ESP_LOGCONFIG(TAG_, "Max FPS %d.", this->maxFps_);
 }
 
 AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
@@ -116,7 +142,7 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
       req->beginChunkedResponse(STREAM_CONTENT_TYPE, [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
         try {
           // Wait for still image.
-          if (this->webStillFb_) {
+          if( this->isStill == pdTRUE ) {
             return RESPONSE_TRY_AGAIN;
           }
 
@@ -249,9 +275,9 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
 
 AsyncWebServerResponse *BaseImageWebStream::still(AsyncWebServerRequest *req) {
   AsyncWebServerResponse *response = req->beginResponse(
-      JPG_CONTENT_TYPE, this->webStillFb_->len, [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+      JPG_CONTENT_TYPE, this->webChunkFb_->len, [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
         try {
-          size_t i = this->webStillFb_->len - index;
+          size_t i = this->webChunkFb_->len - index;
           size_t m = maxLen;
 
           if (i <=0 ) {
@@ -260,14 +286,14 @@ AsyncWebServerResponse *BaseImageWebStream::still(AsyncWebServerRequest *req) {
           }
 
           if (i > m) {
-            memcpy(buffer, this->webStillFb_->buf + index, m);
+            memcpy(buffer, this->webChunkFb_->buf + index, m);
 
             return m;
           }
 
-          memcpy(buffer, this->webStillFb_->buf + index, i);
+          memcpy(buffer, this->webChunkFb_->buf + index, i);
 
-          this->base_esp32cam_->return_fb(this->webStillFb_);
+          this->base_esp32cam_->return_fb(this->webChunkFb_);
 
           return i;
         } catch (...) {
