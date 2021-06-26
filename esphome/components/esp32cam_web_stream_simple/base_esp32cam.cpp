@@ -1,5 +1,6 @@
+#include "esphome.h"
+
 #include "base_esp32cam.h"
-#include "esp32cam_base_settings.h"
 
 namespace esphome {
 namespace base_esp32cam {
@@ -45,7 +46,7 @@ namespace base_esp32cam {
     }
 
     config.pixel_format = PIXFORMAT_JPEG;
-    config.frame_size = ESP32CAM_FB_FORMAT;
+    config.frame_size = FRAMESIZE_SVGA;
     config.jpeg_quality = 10;
     config.fb_count = 2;
 

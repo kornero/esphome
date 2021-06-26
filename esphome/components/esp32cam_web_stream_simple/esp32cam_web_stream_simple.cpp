@@ -14,8 +14,8 @@ void Esp32CamWebStreamSimple::setup() {
 
   ESP_LOGI(TAG,"Cam.... ok.");
 
-  base_image_web_stream::BaseImageWebStream *web = new base_image_web_stream::BaseImageWebStream(this->base_);
-  web->set_cam(cam);
+  base_image_web_stream::BaseImageWebStream *web = new base_image_web_stream::BaseImageWebStream(this->base_, cam);
+//  web->set_cam(cam);
   web->setup();
 
   ESP_LOGI(TAG,"Web.... ok.");

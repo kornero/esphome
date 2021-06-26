@@ -11,11 +11,11 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
   if (req->url() == this->pathStill_) {
     // Clear old.
     if(this->webStillFb_) {
-      this->baseEsp32Cam_->return_fb(this->webStillFb_);
+      this->base_esp32cam_->return_fb(this->webStillFb_);
       this->webStillSent_ = 0;
     }
 
-    this->webStillFb_ = this->baseEsp32Cam_->get_fb();
+    this->webStillFb_ = this->base_esp32cam_->get_fb();
     if(this->webStillFb_) {
       ESP_LOGW(TAG_, "Start sending still image.");
 
@@ -66,7 +66,7 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
 void BaseImageWebStream::setup() {
   ESP_LOGI(TAG_,"enter setup");
 
-  this->base_->init();
+  this->base_web_server_->init();
 
   this->pathStream_ = "/stream";
   this->pathStill_ = "/still";
@@ -82,14 +82,14 @@ void BaseImageWebStream::setup() {
 
   this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
 
-  this->base_->add_handler(this);
+  this->base_web_server_->add_handler(this);
 }
 
 void BaseImageWebStream::reset_steps() {
 
   // Clear from old stream.
   if (this->webChunkFb_) {
-    this->baseEsp32Cam_->return_fb(this->webChunkFb_);
+    this->base_esp32cam_->return_fb(this->webChunkFb_);
   }
 
   this->webChunkSent_ = -1;
@@ -108,7 +108,7 @@ void BaseImageWebStream::dump_config() {
 }
 
 void BaseImageWebStream::set_cam(base_esp32cam::BaseEsp32Cam *cam) {
-  this->baseEsp32Cam_ = cam;
+  this->base_esp32cam_ = cam;
 }
 
 AsyncWebServerResponse* BaseImageWebStream::stream(AsyncWebServerRequest *req) {
@@ -120,7 +120,7 @@ AsyncWebServerResponse* BaseImageWebStream::stream(AsyncWebServerRequest *req) {
               delay(10);
             }
 
-            this->webChunkFb_ = this->baseEsp32Cam_->get_fb();
+            this->webChunkFb_ = this->base_esp32cam_->get_fb();
             if (!this->webChunkFb_) {
               ESP_LOGE(TAG_, "Camera capture failed");
 
