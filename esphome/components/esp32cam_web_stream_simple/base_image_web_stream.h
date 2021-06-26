@@ -37,6 +37,8 @@ class BaseImageWebStream : public AsyncWebHandler {
         return true;
       if (request->url() == this->pathStill_)
         return true;
+      if (request->url() == "test")
+        return true;
     }
 
     return false;
