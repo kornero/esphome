@@ -47,6 +47,9 @@ class BaseImageWebStream : public AsyncWebHandler, public Component {
 
   void handleRequest(AsyncWebServerRequest *req) override;
 
+
+  void reset_steps();
+
   void dump_config() override;
   //  void loop() override {
   //  }
@@ -68,18 +71,6 @@ class BaseImageWebStream : public AsyncWebHandler, public Component {
   int webChunkStep_ = 0;
   size_t webChunkSent_ = 0;
   uint32_t webChunkLastUpdate_ = 0;
-
-  void resetSteps() {
-
-    // Clear from old stream.
-    if (this->webChunkFb_) {
-      this->baseEsp32Cam_->return_fb(this->webChunkFb_);
-    }
-
-    this->webChunkSent_ = -1;
-    this->webChunkStep_ = 0;
-    this->webChunkLastUpdate_ = millis();
-  }
 };
 
 }  // namespace esp32cam_web_stream_simple

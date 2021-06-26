@@ -9,7 +9,7 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
     req->send(500, "text/plain", "Already streaming!");
   }
 
-  this->resetSteps();
+  this->reset_steps();
 
   digitalWrite(33, LOW);  // Turn on
 
@@ -21,7 +21,7 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
               delay(10);
             }
 
-            this->webChunkFb_ = this->baseEsp32Cam_->esp_camera_fb_get();
+            this->webChunkFb_ = this->baseEsp32Cam_->get_fb();
             if (!this->webChunkFb_) {
               ESP_LOGE(TAG_, "Camera capture failed");
 
@@ -162,6 +162,18 @@ void BaseImageWebStream::setup() {
 }
 
 float BaseImageWebStream::get_setup_priority() const { return setup_priority::AFTER_WIFI; }
+
+void BaseImageWebStream::reset_steps() {
+
+  // Clear from old stream.
+  if (this->webChunkFb_) {
+    this->baseEsp32Cam_->return_fb(this->webChunkFb_);
+  }
+
+  this->webChunkSent_ = -1;
+  this->webChunkStep_ = 0;
+  this->webChunkLastUpdate_ = millis();
+}
 
 void BaseImageWebStream::dump_config() {
   if (psramFound()) {
