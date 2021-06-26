@@ -1,6 +1,6 @@
 #pragma once
 
-#include "esphome.h"
+//#include "esphome.h"
 
 //#include "esphome/components/base_esp32cam/base_esp32cam.h"
 #include "base_esp32cam.h"
@@ -25,7 +25,7 @@ static const int ESP32CAM_WEB_CHUNK_MAX_FPS = 25;
 namespace esphome {
 namespace base_image_web_stream {
 
-class BaseImageWebStream : public AsyncWebHandler, public Component {
+class BaseImageWebStream : public AsyncWebHandler {
  public:
   BaseImageWebStream(web_server_base::WebServerBase *base,
                      base_esp32cam::BaseEsp32Cam *baseEsp32Cam)
@@ -43,18 +43,16 @@ class BaseImageWebStream : public AsyncWebHandler, public Component {
     return false;
   }
 
-  void setup() override;
+  void setup();
 
-  float get_setup_priority() const override;
+  float get_setup_priority() const;
 
   void handleRequest(AsyncWebServerRequest *req) override;
 
 
   void reset_steps();
 
-  void dump_config() override;
-  //  void loop() override {
-  //  }
+  void dump_config();
 
  protected:
   base_esp32cam::BaseEsp32Cam *baseEsp32Cam_;
@@ -70,9 +68,9 @@ class BaseImageWebStream : public AsyncWebHandler, public Component {
 
   camera_fb_t *webChunkFb_;
 
-  int webChunkStep_ = 0;
-  size_t webChunkSent_ = 0;
-  uint32_t webChunkLastUpdate_ = 0;
+  int webChunkStep_;
+  size_t webChunkSent_;
+  uint32_t webChunkLastUpdate_;
 };
 
 }  // namespace esp32cam_web_stream_simple

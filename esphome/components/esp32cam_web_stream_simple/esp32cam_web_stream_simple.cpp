@@ -11,12 +11,12 @@ void Esp32CamWebStreamSimple::setup() {
 //  initCamera();
 //  this->base_->add_handler(this);
 
+  base_esp32cam::BaseEsp32Cam *b1 = new base_esp32cam::BaseEsp32Cam();
 
-  this->baseEsp32Cam_ = new base_esp32cam::BaseEsp32Cam();
   this->baseImageWebStream_ = new base_image_web_stream::BaseImageWebStream(
-            base_, baseEsp32Cam_
+            base_, b1
             );
-
+  this->baseEsp32Cam_ = b1;
 this->baseEsp32Cam_->init_camera();
 this->baseImageWebStream_->setup();
 }
