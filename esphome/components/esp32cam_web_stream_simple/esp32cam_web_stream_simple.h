@@ -14,15 +14,7 @@ namespace esp32cam_web_stream_simple {
 
 class Esp32CamWebStreamSimple : public Component {
  public:
-  Esp32CamWebStreamSimple(web_server_base::WebServerBase *base)
-      :
-        base_(base),
-        baseEsp32Cam_(new esphome::base_esp32cam::BaseEsp32Cam())
-//        baseImageWebStream_(new base_image_web_stream::BaseImageWebStream(
-//            base_, baseEsp32Cam_
-//            ))
-  {
-  }
+  Esp32CamWebStreamSimple(web_server_base::WebServerBase *base): base_(base){}
 
   void setup() override;
 
