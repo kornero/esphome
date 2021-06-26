@@ -181,10 +181,15 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
               size_t i = this->webChunkFb_->len - this->webChunkSent_;
               size_t m = maxLen;
 
-              if (m < i) {
+              if (i > m) {
                 memcpy(buffer, this->webChunkFb_->buf + this->webChunkSent_, m);
                 this->webChunkSent_ += m;
                 return m;
+              }
+
+              if (i <= 0) {
+                ESP_LOGE(TAG_, "Content can't be zero length: %d", i);
+                return 0;
               }
 
               memcpy(buffer, this->webChunkFb_->buf + this->webChunkSent_, i);
@@ -232,10 +237,15 @@ AsyncWebServerResponse *BaseImageWebStream::still(AsyncWebServerRequest *req) {
           size_t i = this->webStillFb_->len - this->webStillSent_;
           size_t m = maxLen;
 
-          if (m < i) {
+          if (i > m) {
             memcpy(buffer, this->webStillFb_->buf + this->webStillSent_, m);
             this->webStillSent_ += m;
             return m;
+          }
+
+          if (i <=0 ) {
+            ESP_LOGE(TAG_, "Content can't be zero length: %d", i);
+            return 0;
           }
 
           memcpy(buffer, this->webStillFb_->buf + this->webStillSent_, i);
