@@ -1,5 +1,7 @@
 #include "esp32cam_web_stream_simple.h"
 
+#include <esphome/core/esp32cam_base_settings.h>
+
 // using namespace esphome;
 namespace esphome {
 namespace esp32cam_web_stream_simple {
@@ -245,7 +247,7 @@ void Esp32CamWebStreamSimple::initCamera() {
   }
 
   config.pixel_format = PIXFORMAT_JPEG;
-  config.frame_size = FRAMESIZE_SVGA;
+  config.frame_size = ESP32CAM_FB_FORMAT;
   config.jpeg_quality = 10;
   config.fb_count = 2;
 
