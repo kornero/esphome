@@ -10,12 +10,12 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
 
   if (req->url() == this->pathStill_) {
     // Clear old.
-    if (this->webStillFb_) {
+    if (this->webStillFb_ != NULL) {
       this->base_esp32cam_->return_fb_nowait(this->webStillFb_);
     }
 
     this->webStillFb_ = this->base_esp32cam_->get_fb();
-    if (!this->webStillFb_) {
+    if (this->webStillFb_ == NULL) {
       ESP_LOGE(TAG_, "Can't get image for still.");
       req->send(500, "text/plain", "Can't get image for still.");
 
@@ -27,9 +27,18 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
     AsyncWebServerResponse *response = this->still(req);
 
     response->addHeader("Content-Disposition", "inline; filename=capture.jpg");
-    req->onDisconnect([this]() -> void { ESP_LOGI(TAG_, "Disconnected still image."); });
+    req->onDisconnect([this]() -> void {
+      ESP_LOGI(TAG_, "Disconnected still image.");
+
+      if (this->webStillFb_ != NULL) {
+        this->base_esp32cam_->return_fb_nowait(this->webStillFb_);
+      }
+
+      this->webStillFb_ = NULL;
+    });
 
     req->send(response);
+
     return;
   } else {
     if (millis() - this->webChunkLastUpdate_ < 5000) {
@@ -38,15 +47,16 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
 
       return;
     } else {
-      this->reset_steps();
       digitalWrite(33, LOW);  // Turn on
+
+      this->reset_steps();
 
       AsyncWebServerResponse *response = this->stream(req);
       response->addHeader("Access-Control-Allow-Origin", "*");
       req->onDisconnect([this]() -> void {
         ESP_LOGI(TAG_, "Disconnected.");
 
-        //    resetSteps();
+        this->reset_steps();
 
         digitalWrite(33, HIGH);  // Turn off
       });
@@ -78,9 +88,11 @@ void BaseImageWebStream::setup() {
 
 void BaseImageWebStream::reset_steps() {
   // Clear from old stream.
-  if (this->webChunkFb_) {
+  if (this->webChunkFb_ != NULL) {
     this->base_esp32cam_->return_fb_nowait(this->webChunkFb_);
   }
+
+  this->webChunkFb_ = NULL;
 
   this->webChunkSent_ = -1;
   this->webChunkStep_ = 0;
@@ -107,7 +119,7 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
             }
 
             this->webChunkFb_ = this->base_esp32cam_->get_fb_nowait();
-            if (this->webChunkFb_ == nullptr) {
+            if (this->webChunkFb_ == NULL) {
               // no frame ready
               ESP_LOGD(TAG_, "No frame ready");
               return RESPONSE_TRY_AGAIN;

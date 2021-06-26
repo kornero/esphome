@@ -102,7 +102,7 @@ camera_fb_t *BaseEsp32Cam::get_fb() {
 
     xSemaphoreGive(this->lock);
 
-    return nullptr;
+    return NULL;
   }
 
   xSemaphoreGive(this->lock);
@@ -123,7 +123,7 @@ camera_fb_t *BaseEsp32Cam::get_fb_nowait() {
 
     xSemaphoreGive(this->lock);
 
-    return nullptr;
+    return NULL;
   }
 
   if (!fb) {
@@ -137,7 +137,7 @@ camera_fb_t *BaseEsp32Cam::get_fb_nowait() {
 //    this->init_camera();
     throw std::runtime_error("Camera capture failed!");
 
-//    return nullptr;
+//    return NULL;
   }
 
   xSemaphoreGive(this->lock);
@@ -152,7 +152,7 @@ void BaseEsp32Cam::return_fb(camera_fb_t *fb) {
 
   xSemaphoreTake(this->lock, portMAX_DELAY);
 
-  if (fb) {
+  if (fb != NULL) {
     if(xQueueSend(global_base_esp32cam->queue_return, &fb, portMAX_DELAY)!= pdTRUE) {
       ESP_LOGE(TAG, "return_fb(): can't return.");
     }
@@ -168,7 +168,7 @@ void BaseEsp32Cam::return_fb_nowait(camera_fb_t *fb) {
 
   xSemaphoreTake(this->lock, portMAX_DELAY);
 
-  if (fb) {
+  if (fb != NULL) {
     if(xQueueSend(global_base_esp32cam->queue_return, &fb, 0)!= pdTRUE) {
       ESP_LOGW(TAG, "return_fb_nowait(): can't return.");
     }
