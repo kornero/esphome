@@ -33,28 +33,29 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
     req->send(500, "text/plain", "Can't get image for still.");
 
     return;
+  } else {
+    if (millis() - this->webChunkLastUpdate_ < 5000) {
+      ESP_LOGW(this->TAG_, "Already streaming!");
+      req->send(409, "text/plain", "Already streaming!");
+
+      return;
+    } else {
+      this->reset_steps();
+      digitalWrite(33, LOW);  // Turn on
+
+      AsyncWebServerResponse *response = this->stream(req);
+      response->addHeader("Access-Control-Allow-Origin", "*");
+      req->onDisconnect([this]() -> void {
+        ESP_LOGI(TAG_, "Disconnected.");
+
+        //    resetSteps();
+
+        digitalWrite(33, HIGH);  // Turn off
+      });
+
+      req->send(response);
+    }
   }
-
-  if (millis() - this->webChunkLastUpdate_ < 5000) {
-    ESP_LOGE(this->TAG_, "Already streaming!");
-    req->send(500, "text/plain", "Already streaming!");
-  }
-
-  this->reset_steps();
-
-  digitalWrite(33, LOW);  // Turn on
-
-  AsyncWebServerResponse *response = this->stream(req);
-  response->addHeader("Access-Control-Allow-Origin", "*");
-  req->onDisconnect([this]() -> void {
-    ESP_LOGI(TAG_, "Disconnected.");
-
-    //    resetSteps();
-
-    digitalWrite(33, HIGH);  // Turn off
-  });
-
-  req->send(response);
 }
 
 void BaseImageWebStream::setup() {
