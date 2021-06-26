@@ -94,7 +94,7 @@ camera_fb_t *BaseEsp32Cam::get_fb() {
 
 //    throw std::runtime_error("Camera capture failed!");
 
-    return NULL;
+    return nullptr;
   }
 
   ESP_LOGD(TAG, "<<< get_fb");
@@ -109,7 +109,7 @@ camera_fb_t *BaseEsp32Cam::get_fb_nowait() {
   if (xQueueReceive(global_base_esp32cam->queue_get, &fb, 0L) != pdTRUE) {
     ESP_LOGD(TAG, "get_fb_nowait: null");
 
-    return NULL;
+    return nullptr;
   }
 
   if (!fb) {
@@ -132,10 +132,8 @@ camera_fb_t *BaseEsp32Cam::get_fb_nowait() {
 void BaseEsp32Cam::return_fb(camera_fb_t *fb) {
   ESP_LOGD(TAG, "return_fb >>>");
 
-  if (fb != NULL) {
-    if(xQueueSend(global_base_esp32cam->queue_return, &fb, portMAX_DELAY)!= pdTRUE) {
-      ESP_LOGE(TAG, "return_fb(): can't return.");
-    }
+  if (xQueueSend(global_base_esp32cam->queue_return, &fb, portMAX_DELAY) != pdTRUE) {
+    ESP_LOGE(TAG, "return_fb(): can't return.");
   }
 
   ESP_LOGD(TAG, "<<< return_fb");
@@ -144,10 +142,8 @@ void BaseEsp32Cam::return_fb(camera_fb_t *fb) {
 void BaseEsp32Cam::return_fb_nowait(camera_fb_t *fb) {
   ESP_LOGD(TAG, "return_fb_nowait >>>");
 
-  if (fb != NULL) {
-    if(xQueueSend(global_base_esp32cam->queue_return, &fb, 0)!= pdTRUE) {
-      ESP_LOGW(TAG, "return_fb_nowait(): can't return.");
-    }
+  if (xQueueSend(global_base_esp32cam->queue_return, &fb, 0) != pdTRUE) {
+    ESP_LOGW(TAG, "return_fb_nowait(): can't return.");
   }
 
   ESP_LOGD(TAG, "<<< return_fb_nowait");

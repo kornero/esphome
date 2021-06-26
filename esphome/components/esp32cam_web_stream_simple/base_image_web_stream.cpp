@@ -150,7 +150,7 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
             }
 
             this->webChunkFb_ = this->base_esp32cam_->get_fb_nowait();
-            if (this->webChunkFb_ == NULL) {
+            if (this->webChunkFb_ == nullptr) {
               // no frame ready
               ESP_LOGD(TAG_, "No frame ready");
               return RESPONSE_TRY_AGAIN;
