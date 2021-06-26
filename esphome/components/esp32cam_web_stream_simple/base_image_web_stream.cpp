@@ -22,7 +22,7 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
 
     if (this->isStream == pdTRUE) {
       uint32_t now = millis();
-      while (this->isStreamPaused == pdFALSE && millis() - now < 1000) {
+      while (this->isStreamPaused == pdFALSE && millis() - now < 5000) {
         delay(10);
       }
 
