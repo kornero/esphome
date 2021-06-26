@@ -7,6 +7,8 @@ namespace base_esp32cam {
 
 static const char *const TAG = "base_esp32cam";
 
+BaseEsp32Cam *global_esp32cam_web_stream_queue;
+
 void BaseEsp32Cam::setup() {
   this->init_camera();
 
@@ -107,16 +109,16 @@ camera_fb_t *BaseEsp32Cam::get_fb_nowait() {
 void BaseEsp32Cam::return_fb(camera_fb_t *fb) { xQueueSend(global_base_esp32cam->queue_return, &fb, portMAX_DELAY); }
 
 void BaseEsp32Cam::return_fb_nowait(camera_fb_t *fb) {
-  xQueueSend(global_base_esp32cam->queue_return, &fb, 0) != pdTRUE;
+  xQueueSend(global_base_esp32cam->queue_return, &fb, 0);
 }
 
 void BaseEsp32Cam::esp32cam_fb_task(void *pv) {
   while (true) {
-    camera_fb_t *framebuffer = esp_camera_fb_get();
-    xQueueSend(global_base_esp32cam->queue_get, &framebuffer, portMAX_DELAY);
+    camera_fb_t *fb = esp_camera_fb_get();
+    xQueueSend(global_base_esp32cam->queue_get, &fb, portMAX_DELAY);
     // return is no-op for config with 1 fb
-    xQueueReceive(global_base_esp32cam->queue_return, &framebuffer, portMAX_DELAY);
-    esp_camera_fb_return(framebuffer);
+    xQueueReceive(global_base_esp32cam->queue_return, &fb, portMAX_DELAY);
+    esp_camera_fb_return(fb);
   }
 }
 
