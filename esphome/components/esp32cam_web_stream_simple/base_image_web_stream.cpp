@@ -105,9 +105,7 @@ void BaseImageWebStream::setup() {
 
 void BaseImageWebStream::reset_stream() {
   // Clear from old stream.
-  if (!this->webChunkFb_) {
-    this->base_esp32cam_->return_fb_nowait(this->webChunkFb_);
-  }
+  this->base_esp32cam_->return_fb_nowait(this->webChunkFb_);
 
   this->webChunkSent_ = -1;
   this->webChunkStep_ = 0;
@@ -119,9 +117,7 @@ void BaseImageWebStream::reset_stream() {
 void BaseImageWebStream::reset_still() {
   // Clear from old stream.
   if (this->isStream == pdFALSE) {
-  if (!this->webChunkFb_) {
-    this->base_esp32cam_->return_fb_nowait(this->webChunkFb_);
-  }
+      this->base_esp32cam_->return_fb_nowait(this->webChunkFb_);
   }
 
   this->isStill = pdFALSE;
