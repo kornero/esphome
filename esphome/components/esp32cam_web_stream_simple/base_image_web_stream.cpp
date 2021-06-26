@@ -20,7 +20,7 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
 
     this->isStill = pdTRUE;
 
-    if (!this->webChunkFb_) {
+    if (this->webChunkFb_ == nullptr) {
       this->webChunkFb_ = this->base_esp32cam_->get_fb();
     }
 
@@ -108,6 +108,7 @@ void BaseImageWebStream::setup() {
 void BaseImageWebStream::reset_stream() {
   // Clear from old stream.
   this->base_esp32cam_->return_fb_nowait(this->webChunkFb_);
+  this->webChunkFb_ = nullptr;
 
   this->webChunkSent_ = -1;
   this->webChunkStep_ = 0;
@@ -119,7 +120,8 @@ void BaseImageWebStream::reset_stream() {
 void BaseImageWebStream::reset_still() {
   // Clear from old stream.
   if (this->isStream == pdFALSE) {
-      this->base_esp32cam_->return_fb_nowait(this->webChunkFb_);
+    this->base_esp32cam_->return_fb_nowait(this->webChunkFb_);
+    this->webChunkFb_ = nullptr;
   }
 
   this->isStill = pdFALSE;
@@ -213,7 +215,6 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
               memcpy(buffer, STREAM_CHUNK_NEW_LINE, i);
 
               this->webChunkStep_++;
-              this->webChunkSent_ = 0;
 
               return i;
             }
@@ -224,10 +225,7 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
 
               if (i <= 0) {
                 ESP_LOGE(TAG_, "Content can't be zero length: %d", i);
-
-                this->webChunkStep_++;
-
-                return RESPONSE_TRY_AGAIN;
+                return 0;
               }
 
               if (i > m) {
@@ -239,6 +237,7 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
               memcpy(buffer, this->webChunkFb_->buf + this->webChunkSent_, i);
 
               this->base_esp32cam_->return_fb(this->webChunkFb_);
+              this->webChunkFb_ = nullptr;
               this->webChunkSent_ = -1;
 
               this->webChunkStep_++;
@@ -296,6 +295,7 @@ AsyncWebServerResponse *BaseImageWebStream::still(AsyncWebServerRequest *req) {
 
           if(this->isStream == pdFALSE) {
             this->base_esp32cam_->return_fb(this->webChunkFb_);
+            this->webChunkFb_ = nullptr;
           }
 
           return i;
