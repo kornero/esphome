@@ -12,25 +12,14 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
     // Clear old.
     if (this->webStillFb_) {
       this->base_esp32cam_->return_fb_nowait(this->webStillFb_);
-      this->webStillSent_ = 0;
     }
+    this->webStillSent_ = 0;
 
     this->webStillFb_ = this->base_esp32cam_->get_fb();
     if (this->webStillFb_) {
       ESP_LOGI(TAG_, "Start sending still image.");
 
       AsyncWebServerResponse *response = this->still(req);
-      /*
-            response->setCode(200);
-            response->setContentType(JPG_CONTENT_TYPE);
-            response->setContentLength(this->webStillFb_->len);
-      */
-
-      /*response->addHeader("Content-Type", JPG_CONTENT_TYPE);
-
-      char str[256];
-      snprintf(str, sizeof str, "%zu", this->webStillFb_->len);
-      response->addHeader("Content-Length", str);*/
 
       response->addHeader("Content-Disposition", "inline; filename=capture.jpg");
       req->onDisconnect([this]() -> void {
@@ -38,9 +27,11 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
       });
 
       req->send(response);
-    } else {
-      ESP_LOGW(TAG_, "Can't get image for still.");
     }
+
+    ESP_LOGE(TAG_, "Can't get image for still.");
+    req->send(500, "text/plain", "Can't get image for still.");
+
     return;
   }
 
