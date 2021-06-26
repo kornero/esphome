@@ -21,7 +21,11 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
     this->isStill = pdTRUE;
 
     if (this->webChunkFb_ == nullptr) {
+      while (millis() - this->webChunkLastUpdate_ < this->maxRate_) {
+        delay(10);
+      }
       this->webChunkFb_ = this->base_esp32cam_->get_fb();
+      this->webChunkLastUpdate_ = millis();
     }
 
     if (!this->webChunkFb_) {
@@ -144,6 +148,11 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
           // Wait for still image.
           if (this->isStill == pdTRUE) {
             return RESPONSE_TRY_AGAIN;
+          }
+
+          if (this->isStream == pdFALSE) {
+            ESP_LOGE(TAG_, "Not in stream mode.");
+            return 0;
           }
 
           if (this->webChunkSent_ == -1) {
@@ -277,6 +286,11 @@ AsyncWebServerResponse *BaseImageWebStream::still(AsyncWebServerRequest *req) {
   AsyncWebServerResponse *response = req->beginResponse(
       JPG_CONTENT_TYPE, this->webChunkFb_->len, [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
         try {
+          if (this->isStill == pdFALSE) {
+            ESP_LOGE(TAG_, "Not in still mode.");
+            return 0;
+          }
+
           size_t i = this->webChunkFb_->len - index;
           size_t m = maxLen;
 
@@ -293,10 +307,7 @@ AsyncWebServerResponse *BaseImageWebStream::still(AsyncWebServerRequest *req) {
 
           memcpy(buffer, this->webChunkFb_->buf + index, i);
 
-          if (this->isStream == pdFALSE) {
-            this->base_esp32cam_->return_fb(this->webChunkFb_);
-            this->webChunkFb_ = nullptr;
-          }
+          this->reset_still();
 
           return i;
         } catch (...) {
