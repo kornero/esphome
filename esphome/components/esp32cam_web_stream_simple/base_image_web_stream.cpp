@@ -16,23 +16,21 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
     this->webStillSent_ = 0;
 
     this->webStillFb_ = this->base_esp32cam_->get_fb();
-    if (this->webStillFb_) {
-      ESP_LOGI(TAG_, "Start sending still image.");
+    if (!this->webStillFb_) {
+      ESP_LOGE(TAG_, "Can't get image for still.");
+      req->send(500, "text/plain", "Can't get image for still.");
 
-      AsyncWebServerResponse *response = this->still(req);
-
-      response->addHeader("Content-Disposition", "inline; filename=capture.jpg");
-      req->onDisconnect([this]() -> void {
-        ESP_LOGI(TAG_, "Disconnected still image.");
-      });
-
-      req->send(response);
       return;
     }
 
-    ESP_LOGE(TAG_, "Can't get image for still.");
-    req->send(500, "text/plain", "Can't get image for still.");
+    ESP_LOGI(TAG_, "Start sending still image.");
 
+    AsyncWebServerResponse *response = this->still(req);
+
+    response->addHeader("Content-Disposition", "inline; filename=capture.jpg");
+    req->onDisconnect([this]() -> void { ESP_LOGI(TAG_, "Disconnected still image."); });
+
+    req->send(response);
     return;
   } else {
     if (millis() - this->webChunkLastUpdate_ < 5000) {
@@ -112,7 +110,7 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
             }
 
             this->webChunkFb_ = this->base_esp32cam_->get_fb_nowait();
-            if (!this->webChunkFb_) {
+            if (this->webChunkFb_ == nullptr) {
               // no frame ready
               ESP_LOGD(TAG_, "No frame ready");
               return RESPONSE_TRY_AGAIN;
