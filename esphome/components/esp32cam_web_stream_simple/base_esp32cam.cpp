@@ -85,7 +85,7 @@ void BaseEsp32Cam::init_camera() {
 camera_fb_t *BaseEsp32Cam::get_fb() {
   ESP_LOGD(TAG, "get_fb >>>");
 
-  xSemaphoreTake(this->lock, 0);
+  xSemaphoreTake(this->lock, portMAX_DELAY);
 
   camera_fb_t *fb;
   xQueueReceive(global_base_esp32cam->queue_get, &fb, portMAX_DELAY);
@@ -115,7 +115,7 @@ camera_fb_t *BaseEsp32Cam::get_fb() {
 camera_fb_t *BaseEsp32Cam::get_fb_nowait() {
   ESP_LOGD(TAG, "get_fb_nowait >>>");
 
-  xSemaphoreTake(this->lock, 0);
+  xSemaphoreTake(this->lock, portMAX_DELAY);
 
   camera_fb_t *fb;
   if (xQueueReceive(global_base_esp32cam->queue_get, &fb, 0L) != pdTRUE) {
@@ -147,7 +147,7 @@ camera_fb_t *BaseEsp32Cam::get_fb_nowait() {
 void BaseEsp32Cam::return_fb(camera_fb_t *fb) {
   ESP_LOGD(TAG, "return_fb >>>");
 
-  xSemaphoreTake(this->lock, 0);
+  xSemaphoreTake(this->lock, portMAX_DELAY);
 
   if (fb) {
     if(xQueueSend(global_base_esp32cam->queue_return, &fb, portMAX_DELAY)!= pdTRUE) {
@@ -163,7 +163,7 @@ void BaseEsp32Cam::return_fb(camera_fb_t *fb) {
 void BaseEsp32Cam::return_fb_nowait(camera_fb_t *fb) {
   ESP_LOGD(TAG, "return_fb_nowait >>>");
 
-  xSemaphoreTake(this->lock, 0);
+  xSemaphoreTake(this->lock, portMAX_DELAY);
 
   if (fb) {
     if(xQueueSend(global_base_esp32cam->queue_return, &fb, 0)!= pdTRUE) {
