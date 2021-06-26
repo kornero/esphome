@@ -27,6 +27,7 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
       });
 
       req->send(response);
+      return;
     }
 
     ESP_LOGE(TAG_, "Can't get image for still.");
