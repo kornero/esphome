@@ -158,8 +158,8 @@ void BaseImageWebStream::setup() {
 
   this->base_->init();
 
-  this->pathStream_ = "stream";
-  this->pathStill_ = "still";
+  this->pathStream_ = "/stream";
+  this->pathStill_ = "/still";
   this->contentType_ = JPG_CONTENT_TYPE;
   this->maxFps_ = ESP32CAM_WEB_CHUNK_MAX_FPS;
   this->TAG_ = TAG_BASE_IMAGE_WEB_STREAM;

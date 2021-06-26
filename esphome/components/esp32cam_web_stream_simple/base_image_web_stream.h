@@ -38,8 +38,6 @@ class BaseImageWebStream : public AsyncWebHandler {
         return true;
       if (request->url() == this->pathStill_)
         return true;
-      if (request->url() == "test")
-        return true;
     }
 
     ESP_LOGI(TAG_, "Can handle?.... No!");
