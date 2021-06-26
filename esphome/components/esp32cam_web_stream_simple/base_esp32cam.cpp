@@ -37,10 +37,10 @@ namespace base_esp32cam {
     //  config.jpeg_quality = 12;
 
     if (psramFound()) {
-      ESP_LOGCONFIG(TAG_WEB_CAM, "PSRAM");
+//      ESP_LOGCONFIG(TAG_WEB_CAM, "PSRAM");
       config.fb_count = 2;
     } else {
-      ESP_LOGCONFIG(TAG_WEB_CAM, "PSRAM not found.");
+//      ESP_LOGCONFIG(TAG_WEB_CAM, "PSRAM not found.");
       config.fb_count = 1;
     }
 
@@ -52,7 +52,7 @@ namespace base_esp32cam {
     // Camera init
     esp_err_t err = esp_camera_init(&config);
     if (err != ESP_OK) {
-      ESP_LOGCONFIG(TAG_WEB_CAM, "Camera init failed!");
+      ESP_LOGE(TAG_WEB_CAM, "Camera init failed!");
       return;
     }
   }

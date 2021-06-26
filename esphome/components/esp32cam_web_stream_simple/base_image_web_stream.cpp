@@ -152,18 +152,21 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
 }
 
 void BaseImageWebStream::setup() {
-//  global_esp32cam_web_stream_simple = this;
-
   this->base_->init();
-
-//  initCamera();
-
   this->base_->add_handler(this);
+
+  this->pathStream_ = "stream";
+  this->pathStill_ = "still";
+  this->contentType_ = JPG_CONTENT_TYPE;
+  this->maxFps_ = ESP32CAM_WEB_CHUNK_MAX_FPS;
+  this->TAG_ = TAG_BASE_IMAGE_WEB_STREAM;
+
+  this->webChunkStep_ = -1;
+  this->webChunkSent_ = 0;
+  this->webChunkLastUpdate_ = 0;
 
   this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
 }
-
-float BaseImageWebStream::get_setup_priority() const { return setup_priority::AFTER_WIFI; }
 
 void BaseImageWebStream::reset_steps() {
 

@@ -23,7 +23,9 @@ this->baseEsp32Cam_->init_camera();
 this->baseImageWebStream_->setup();
 }
 
-float Esp32CamWebStreamSimple::get_setup_priority() const { return this->baseImageWebStream_->get_setup_priority(); }
+float Esp32CamWebStreamSimple::get_setup_priority() const {
+  return setup_priority::AFTER_WIFI;
+}
 
 void Esp32CamWebStreamSimple::dump_config() {
   this->baseImageWebStream_->dump_config();

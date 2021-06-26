@@ -44,10 +44,7 @@ class BaseImageWebStream : public AsyncWebHandler {
 
   void setup();
 
-  float get_setup_priority() const;
-
   void handleRequest(AsyncWebServerRequest *req) override;
-
 
   void reset_steps();
 
@@ -62,9 +59,9 @@ class BaseImageWebStream : public AsyncWebHandler {
 
   String pathStream_;
   String pathStill_;
-  char *contentType_;
+  const char *contentType_;
   int maxFps_;
-  char *TAG_;
+  const char *TAG_;
 
   int maxRate_;
 
