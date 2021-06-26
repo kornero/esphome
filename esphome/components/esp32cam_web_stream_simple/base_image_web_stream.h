@@ -72,6 +72,7 @@ class BaseImageWebStream : public AsyncWebHandler {
   uint32_t webChunkLastUpdate_;
 
   BaseType_t isStream;
+  BaseType_t isStreamPaused;
   BaseType_t isStill;
 
   AsyncWebServerResponse *stream(AsyncWebServerRequest *request);

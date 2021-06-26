@@ -20,6 +20,22 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
 
     this->isStill = pdTRUE;
 
+    if (this->isStream == pdTRUE) {
+      uint32_t now = millis();
+      while (this->isStreamPaused == pdFALSE && millis() - now < 1000) {
+        delay(10);
+      }
+
+      if (this->isStreamPaused == pdFALSE) {
+        ESP_LOGE(TAG_, "Can't pause streaming.");
+        req->send(500, "text/plain", "Can't pause streaming.");
+
+        this->isStill = pdFALSE;
+
+        return;
+      }
+    }
+
     if (this->webChunkFb_ == nullptr) {
       while (millis() - this->webChunkLastUpdate_ < this->maxRate_) {
         delay(10);
@@ -102,6 +118,7 @@ void BaseImageWebStream::setup() {
   this->webChunkLastUpdate_ = 0;
 
   this->isStream = pdFALSE;
+  this->isStreamPaused = pdFALSE;
   this->isStill = pdFALSE;
 
   this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
@@ -119,6 +136,7 @@ void BaseImageWebStream::reset_stream() {
   this->webChunkLastUpdate_ = millis();
 
   this->isStream = pdFALSE;
+  this->isStreamPaused = pdFALSE;
 }
 
 void BaseImageWebStream::reset_still() {
@@ -147,7 +165,10 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
         try {
           // Wait for still image.
           if (this->isStill == pdTRUE) {
+            this->isStreamPaused = pdTRUE;
             return RESPONSE_TRY_AGAIN;
+          } else {
+            this->isStreamPaused = pdFALSE;
           }
 
           if (this->isStream == pdFALSE) {
