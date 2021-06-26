@@ -28,12 +28,6 @@ namespace base_image_web_stream {
 
 class BaseImageWebStream : public AsyncWebHandler, public Component {
  public:
-  String pathStream_;
-   String pathStill_;
-   char *contentType_;
-   int maxFps_;
-   char *TAG_;
-
   BaseImageWebStream(web_server_base::WebServerBase *base,
                      base_esp32cam::BaseEsp32Cam *baseEsp32Cam)
       : baseEsp32Cam_(baseEsp32Cam),
@@ -63,6 +57,12 @@ class BaseImageWebStream : public AsyncWebHandler, public Component {
  protected:
   base_esp32cam::BaseEsp32Cam *baseEsp32Cam_;
   web_server_base::WebServerBase *base_;
+
+  String pathStream_;
+  String pathStill_;
+  char *contentType_;
+  int maxFps_;
+  char *TAG_;
 
   const int maxRate_ = 1000 / this->maxFps_;  // 15 fps
 
