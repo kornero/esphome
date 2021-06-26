@@ -222,7 +222,10 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
 
               if (i <= 0) {
                 ESP_LOGE(TAG_, "Content can't be zero length: %d", i);
-                return 0;
+
+                this->webChunkStep_++;
+
+                return RESPONSE_TRY_AGAIN;
               }
 
               if (i > m) {
@@ -277,7 +280,7 @@ AsyncWebServerResponse *BaseImageWebStream::still(AsyncWebServerRequest *req) {
           size_t m = maxLen;
 
           if (i <=0 ) {
-            ESP_LOGE(TAG_, "Content can't be zero length: %d", i);
+            ESP_LOGE(TAG_, "[STILL] Content can't be zero length: %d", i);
             return 0;
           }
 
@@ -289,7 +292,9 @@ AsyncWebServerResponse *BaseImageWebStream::still(AsyncWebServerRequest *req) {
 
           memcpy(buffer, this->webChunkFb_->buf + index, i);
 
-          this->base_esp32cam_->return_fb(this->webChunkFb_);
+          if(this->isStream == pdFALSE) {
+            this->base_esp32cam_->return_fb(this->webChunkFb_);
+          }
 
           return i;
         } catch (...) {
