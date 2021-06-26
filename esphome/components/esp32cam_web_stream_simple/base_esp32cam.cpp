@@ -89,10 +89,12 @@ camera_fb_t *BaseEsp32Cam::get_fb() {
 
     xQueueSend(global_base_esp32cam->queue_return, &fb, portMAX_DELAY);
 
-    esp_camera_deinit();
-    this->init_camera();
+//    esp_camera_deinit();
+//    this->init_camera();
 
-    throw std::runtime_error("Camera capture failed!");
+//    throw std::runtime_error("Camera capture failed!");
+
+    return nullptr;
   }
 
   ESP_LOGD(TAG, "<<< get_fb");
@@ -114,10 +116,11 @@ camera_fb_t *BaseEsp32Cam::get_fb_nowait() {
 
     xQueueSend(global_base_esp32cam->queue_return, &fb, portMAX_DELAY);
 
-    esp_camera_deinit();
-    this->init_camera();
-
+//    esp_camera_deinit();
+//    this->init_camera();
     throw std::runtime_error("Camera capture failed!");
+
+//    return nullptr;
   }
 
   ESP_LOGD(TAG, "<<< get_fb_nowait");
