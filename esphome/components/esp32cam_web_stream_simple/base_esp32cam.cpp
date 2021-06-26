@@ -7,7 +7,7 @@ namespace base_esp32cam {
 
 static const char *const TAG = "base_esp32cam";
 
-BaseEsp32Cam *global_esp32cam_web_stream_queue;
+BaseEsp32Cam *global_base_esp32cam;
 
 void BaseEsp32Cam::setup() {
   this->init_camera();
