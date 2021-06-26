@@ -1,5 +1,3 @@
-#pragma once
-
 #include "esphome.h"
 
 //#include "esphome/components/base_esp32cam/base_esp32cam.h"
@@ -7,7 +5,6 @@
 
 #include <ESPAsyncWebServer.h>
 
-namespace esphome {
 
 #define PART_BOUNDARY "imgboundary"
 static const char *STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
@@ -22,9 +19,9 @@ static const char *const TAG_BASE_IMAGE_WEB_STREAM = "base_image_web_stream";
 
 static const int ESP32CAM_WEB_CHUNK_MAX_FPS = 25;
 
-namespace base_image_web_stream {
 
-//const BaseImageWebStream *THIS;
+namespace esphome {
+namespace base_image_web_stream {
 
 class BaseImageWebStream : public AsyncWebHandler, public Component {
  public:
@@ -64,7 +61,7 @@ class BaseImageWebStream : public AsyncWebHandler, public Component {
   int maxFps_;
   char *TAG_;
 
-  const int maxRate_ = 1000 / this->maxFps_;  // 15 fps
+  int maxRate_;
 
   camera_fb_t *webChunkFb_;
 
@@ -76,7 +73,7 @@ class BaseImageWebStream : public AsyncWebHandler, public Component {
 
     // Clear from old stream.
     if (this->webChunkFb_) {
-      this->baseEsp32Cam_->esp_camera_fb_return(this->webChunkFb_);
+      this->baseEsp32Cam_->return_fb(this->webChunkFb_);
     }
 
     this->webChunkSent_ = -1;

@@ -157,6 +157,8 @@ void BaseImageWebStream::setup() {
 //  initCamera();
 
   this->base_->add_handler(this);
+
+  this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
 }
 
 float BaseImageWebStream::get_setup_priority() const { return setup_priority::AFTER_WIFI; }

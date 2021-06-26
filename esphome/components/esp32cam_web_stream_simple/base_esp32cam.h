@@ -1,5 +1,3 @@
-#pragma once
-
 #include "esphome.h"
 
 #include <esp_camera.h>
@@ -10,10 +8,11 @@ namespace base_esp32cam {
 class BaseEsp32Cam {
  public:
 
-  void initCamera();
+  void init_camera();
 
-  camera_fb_t* esp_camera_fb_get();
-  void esp_camera_fb_return(camera_fb_t * fb);
+  camera_fb_t* get_fb();
+
+  void return_fb(camera_fb_t * fb);
 };
 
 }

@@ -6,7 +6,7 @@ static const char *const TAG_WEB_CAM = "web_cam";
 namespace esphome {
 namespace base_esp32cam {
 
-  void BaseEsp32Cam::initCamera() {
+  void BaseEsp32Cam::init_camera() {
     camera_config_t config;
     config.ledc_channel = LEDC_CHANNEL_0;
     config.ledc_timer = LEDC_TIMER_0;
@@ -57,11 +57,11 @@ namespace base_esp32cam {
     }
   }
 
-  camera_fb_t* BaseEsp32Cam::esp_camera_fb_get() {
+  camera_fb_t* BaseEsp32Cam::get_fb() {
     return esp_camera_fb_get();
   }
 
-  void BaseEsp32Cam::esp_camera_fb_return(camera_fb_t * fb) {
+  void BaseEsp32Cam::return_fb(camera_fb_t * fb) {
       esp_camera_fb_return(fb);
   }
 
