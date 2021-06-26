@@ -1,3 +1,5 @@
+#include "esphome.h"
+
 #include "base_image_web_stream.h"
 
 namespace esphome {
