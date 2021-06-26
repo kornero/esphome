@@ -27,10 +27,7 @@ namespace base_image_web_stream {
 
 class BaseImageWebStream : public AsyncWebHandler {
  public:
-  BaseImageWebStream(web_server_base::WebServerBase *base,
-                     base_esp32cam::BaseEsp32Cam *baseEsp32Cam)
-      : baseEsp32Cam_(baseEsp32Cam),
-        base_(base) {}
+  BaseImageWebStream(web_server_base::WebServerBase *base) : base_(base) {}
 
   bool canHandle(AsyncWebServerRequest *request) override {
     if (request->method() == HTTP_GET) {
@@ -54,9 +51,14 @@ class BaseImageWebStream : public AsyncWebHandler {
 
   void dump_config();
 
+  void set_cam(base_esp32cam::BaseEsp32Cam *cam) {
+    this->baseEsp32Cam_ = cam;
+  }
+
  protected:
-  base_esp32cam::BaseEsp32Cam *baseEsp32Cam_;
   web_server_base::WebServerBase *base_;
+
+  base_esp32cam::BaseEsp32Cam *baseEsp32Cam_;
 
   String pathStream_;
   String pathStill_;
