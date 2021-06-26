@@ -106,8 +106,6 @@ void BaseImageWebStream::dump_config() {
   ESP_LOGCONFIG(TAG_, "Max FPS %d.", ESP32CAM_WEB_CHUNK_MAX_FPS);
 }
 
-void BaseImageWebStream::set_cam(base_esp32cam::BaseEsp32Cam *cam) { this->base_esp32cam_ = cam; }
-
 AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
   AsyncWebServerResponse *response =
       req->beginChunkedResponse(STREAM_CONTENT_TYPE, [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
@@ -122,13 +120,6 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
               // no frame ready
               ESP_LOGD(TAG_, "No frame ready");
               return RESPONSE_TRY_AGAIN;
-
-              ESP_LOGE(TAG_, "Camera capture failed");
-
-              //              esp_camera_deinit();
-              //              initCamera();
-
-              return 0;
             }
 
             this->webChunkLastUpdate_ = millis();
