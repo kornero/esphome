@@ -67,13 +67,13 @@ class BaseImageWebStream : public AsyncWebHandler {
   int maxRate_;
 
   camera_fb_t *webChunkFb_;
-  int webChunkStep_;
-  size_t webChunkSent_;
-  uint32_t webChunkLastUpdate_;
+  volatile int webChunkStep_;
+  volatile size_t webChunkSent_;
+  volatile uint32_t webChunkLastUpdate_;
 
-  BaseType_t isStream;
-  BaseType_t isStreamPaused;
-  BaseType_t isStill;
+  volatile BaseType_t isStream;
+  volatile BaseType_t isStreamPaused;
+  volatile BaseType_t isStill;
 
   AsyncWebServerResponse *stream(AsyncWebServerRequest *request);
   AsyncWebServerResponse *still(AsyncWebServerRequest *request);
