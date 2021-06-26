@@ -28,24 +28,24 @@ namespace base_image_web_stream {
 
 class BaseImageWebStream : public AsyncWebHandler, public Component {
  public:
-  const String pathStream_;
-  const String pathStill_;
+  String pathStream_;
+   String pathStill_;
   const char *contentType_;
-  const int maxFps_;
+   int maxFps_;
   const char *const TAG_;
 
   BaseImageWebStream(web_server_base::WebServerBase *base,
                      base_esp32cam::BaseEsp32Cam *baseEsp32Cam,
 
-                     const String _pathStream = "stream",
-                     const  String _pathStill = "still",
-                     const char *_contentType = JPG_CONTENT_TYPE,
-                     int _maxFps = ESP32CAM_WEB_CHUNK_MAX_FPS,
-                     const char *const tag = TAG_BASE_IMAGE_WEB_STREAM)
-      : pathStream_(_pathStream),
-        pathStill_(_pathStill),
-        contentType_(_contentType),
-        maxFps_(_maxFps),
+                     String pathStream = "stream",
+                       String pathStill = "still",
+                     const char *contentType = JPG_CONTENT_TYPE,
+                     int maxFps = ESP32CAM_WEB_CHUNK_MAX_FPS,
+                      const char *const tag = TAG_BASE_IMAGE_WEB_STREAM)
+      : pathStream_(pathStream),
+        pathStill_(pathStill),
+        contentType_(contentType),
+        maxFps_(maxFps),
         TAG_(tag),
         baseEsp32Cam_(baseEsp32Cam),
         base_(base) {}
