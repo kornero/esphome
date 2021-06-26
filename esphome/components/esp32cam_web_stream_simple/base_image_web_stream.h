@@ -9,7 +9,6 @@
 
 #include <ESPAsyncWebServer.h>
 
-
 #define PART_BOUNDARY "imgboundary"
 static const char *STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
 static const char *STREAM_CHUNK_BOUNDARY = "--" PART_BOUNDARY "\r\n";
@@ -28,8 +27,7 @@ namespace base_image_web_stream {
 
 class BaseImageWebStream : public AsyncWebHandler {
  public:
-  BaseImageWebStream(web_server_base::WebServerBase *base,
-                     base_esp32cam::BaseEsp32Cam *base_esp32cam)
+  BaseImageWebStream(web_server_base::WebServerBase *base, base_esp32cam::BaseEsp32Cam *base_esp32cam)
       : base_web_server_(base), base_esp32cam_(base_esp32cam) {}
 
   bool canHandle(AsyncWebServerRequest *request) override {
@@ -77,9 +75,9 @@ class BaseImageWebStream : public AsyncWebHandler {
   camera_fb_t *webStillFb_;
   size_t webStillSent_;
 
-  AsyncWebServerResponse* stream(AsyncWebServerRequest *request);
-  AsyncWebServerResponse* still(AsyncWebServerRequest *request);
+  AsyncWebServerResponse *stream(AsyncWebServerRequest *request);
+  AsyncWebServerResponse *still(AsyncWebServerRequest *request);
 };
 
-}  // namespace esp32cam_web_stream_simple
+}  // namespace base_image_web_stream
 }  // namespace esphome
