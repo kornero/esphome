@@ -66,7 +66,7 @@ void BaseEsp32Cam::init_camera() {
   }
 
   config.pixel_format = PIXFORMAT_JPEG;
-  config.frame_size = FRAMESIZE_SVGA;
+  config.frame_size = FRAMESIZE_VGA;
   config.jpeg_quality = 10;
   config.fb_count = 2;
 
