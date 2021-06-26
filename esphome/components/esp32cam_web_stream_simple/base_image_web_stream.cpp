@@ -17,7 +17,7 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
 
     this->webStillFb_ = this->base_esp32cam_->get_fb();
     if (this->webStillFb_) {
-      ESP_LOGW(TAG_, "Start sending still image.");
+      ESP_LOGI(TAG_, "Start sending still image.");
 
       AsyncWebServerResponse *response = this->still(req);
       /*
@@ -33,6 +33,9 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
       response->addHeader("Content-Length", str);*/
 
       response->addHeader("Content-Disposition", "inline; filename=capture.jpg");
+      req->onDisconnect([this]() -> void {
+        ESP_LOGI(TAG_, "Disconnected still image.");
+      });
 
       req->send(response);
     } else {
