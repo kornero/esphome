@@ -22,7 +22,7 @@ class Esp32CamWebStreamQueue : public AsyncWebHandler, public Component {
 
   bool canHandle(AsyncWebServerRequest *request) override {
     if (request->method() == HTTP_GET) {
-      if (request->url() == "/stream")
+      if (request->url() == "/stream_q")
         return true;
     }
 
