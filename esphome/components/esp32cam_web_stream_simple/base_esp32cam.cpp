@@ -1,10 +1,10 @@
 #include "base_esp32cam.h"
 #include "esp32cam_base_settings.h"
 
-static const char *const TAG_WEB_CAM = "web_cam";
-
 namespace esphome {
 namespace base_esp32cam {
+
+  static const char *const TAG = "base_esp32cam";
 
   void BaseEsp32Cam::init_camera() {
     camera_config_t config;
@@ -37,10 +37,10 @@ namespace base_esp32cam {
     //  config.jpeg_quality = 12;
 
     if (psramFound()) {
-//      ESP_LOGCONFIG(TAG_WEB_CAM, "PSRAM");
+      ESP_LOGI(TAG, "PSRAM");
       config.fb_count = 2;
     } else {
-//      ESP_LOGCONFIG(TAG_WEB_CAM, "PSRAM not found.");
+      ESP_LOGI(TAG, "PSRAM not found.");
       config.fb_count = 1;
     }
 
@@ -52,7 +52,7 @@ namespace base_esp32cam {
     // Camera init
     esp_err_t err = esp_camera_init(&config);
     if (err != ESP_OK) {
-      ESP_LOGE(TAG_WEB_CAM, "Camera init failed!");
+      ESP_LOGE(TAG, "Camera init failed!");
       return;
     }
   }

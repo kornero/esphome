@@ -23,7 +23,6 @@ static const char *const TAG_BASE_IMAGE_WEB_STREAM = "base_image_web_stream";
 
 static const int ESP32CAM_WEB_CHUNK_MAX_FPS = 25;
 
-
 namespace esphome {
 namespace base_image_web_stream {
 
@@ -32,6 +31,8 @@ class BaseImageWebStream : public AsyncWebHandler {
   BaseImageWebStream(web_server_base::WebServerBase *base) : base_(base) {}
 
   bool canHandle(AsyncWebServerRequest *request) override {
+    ESP_LOGI(TAG_, "Can handle?");
+
     if (request->method() == HTTP_GET) {
       if (request->url() == this->pathStream_)
         return true;
@@ -40,6 +41,8 @@ class BaseImageWebStream : public AsyncWebHandler {
       if (request->url() == "test")
         return true;
     }
+
+    ESP_LOGI(TAG_, "Can handle?.... No!");
 
     return false;
   }

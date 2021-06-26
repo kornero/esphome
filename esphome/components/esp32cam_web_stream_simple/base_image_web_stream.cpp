@@ -6,6 +6,8 @@ namespace esphome {
 namespace base_image_web_stream {
 
 void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
+  ESP_LOGI(TAG_,"Handle request.");
+
   if (millis() - this->webChunkLastUpdate_ < 5000) {
     ESP_LOGE(this->TAG_, "Already streaming!");
     req->send(500, "text/plain", "Already streaming!");
@@ -152,8 +154,9 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
 }
 
 void BaseImageWebStream::setup() {
+  ESP_LOGI(TAG_,"enter setup");
+
   this->base_->init();
-  this->base_->add_handler(this);
 
   this->pathStream_ = "stream";
   this->pathStill_ = "still";
@@ -166,6 +169,8 @@ void BaseImageWebStream::setup() {
   this->webChunkLastUpdate_ = 0;
 
   this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
+
+  this->base_->add_handler(this);
 }
 
 void BaseImageWebStream::reset_steps() {

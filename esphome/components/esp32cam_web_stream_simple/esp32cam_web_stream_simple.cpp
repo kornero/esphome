@@ -3,24 +3,25 @@
 // using namespace esphome;
 namespace esphome {
 namespace esp32cam_web_stream_simple {
+
+static const char *const TAG = "esp32cam_web_stream_simple";
+
 void Esp32CamWebStreamSimple::setup() {
-//  global_esp32cam_web_stream_simple = this;
-
-//  this->base_->init();
-
-//  initCamera();
-//  this->base_->add_handler(this);
+  ESP_LOGI(TAG,"enter setup");
 
   base_esp32cam::BaseEsp32Cam *cam = new base_esp32cam::BaseEsp32Cam();
+  cam->init_camera();
 
-  base_image_web_stream::BaseImageWebStream *web = new base_image_web_stream::BaseImageWebStream(base_);
+  ESP_LOGI(TAG,"Cam.... ok.");
+
+  base_image_web_stream::BaseImageWebStream *web = new base_image_web_stream::BaseImageWebStream(this->base_);
   web->set_cam(cam);
+  web->setup();
+
+  ESP_LOGI(TAG,"Web.... ok.");
 
   this->baseImageWebStream_ = web;
   this->baseEsp32Cam_ = cam;
-
-this->baseEsp32Cam_->init_camera();
-this->baseImageWebStream_->setup();
 }
 
 float Esp32CamWebStreamSimple::get_setup_priority() const {
