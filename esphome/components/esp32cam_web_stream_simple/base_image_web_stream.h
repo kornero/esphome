@@ -3,6 +3,8 @@
 //#include "esphome.h"
 
 //#include "esphome/components/base_esp32cam/base_esp32cam.h"
+
+#include <esp_camera.h>
 #include "base_esp32cam.h"
 
 #include <ESPAsyncWebServer.h>
