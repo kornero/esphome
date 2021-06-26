@@ -22,17 +22,19 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
 
     if (this->isStream == pdTRUE) {
       uint32_t now = millis();
-      while (this->isStreamPaused == pdFALSE && millis() - now < 1500) {
+      while (this->isStreamPaused == pdFALSE && millis() - now < 100) {
         yield();
       }
 
       if (this->isStreamPaused == pdFALSE) {
+        ESP_LOGI(TAG_, "Can't pause streaming, continue anyway.");
+        /*
         ESP_LOGE(TAG_, "Can't pause streaming.");
         req->send(500, "text/plain", "Can't pause streaming.");
 
         this->isStill = pdFALSE;
 
-        return;
+        return;*/
       }
     }
 
