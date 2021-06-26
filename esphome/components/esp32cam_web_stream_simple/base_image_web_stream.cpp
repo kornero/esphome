@@ -13,7 +13,6 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
     if (this->webStillFb_) {
       this->base_esp32cam_->return_fb_nowait(this->webStillFb_);
     }
-    this->webStillSent_ = 0;
 
     this->webStillFb_ = this->base_esp32cam_->get_fb();
     if (!this->webStillFb_) {
@@ -71,8 +70,6 @@ void BaseImageWebStream::setup() {
   this->webChunkStep_ = -1;
   this->webChunkSent_ = 0;
   this->webChunkLastUpdate_ = 0;
-
-  this->webStillSent_ = 0;
 
   this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
 
@@ -173,6 +170,7 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
               memcpy(buffer, STREAM_CHUNK_NEW_LINE, i);
 
               this->webChunkStep_++;
+              this->webChunkSent_ = 0;
 
               return i;
             }
@@ -181,15 +179,15 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
               size_t i = this->webChunkFb_->len - this->webChunkSent_;
               size_t m = maxLen;
 
+              if (i <= 0) {
+                ESP_LOGE(TAG_, "Content can't be zero length: %d", i);
+                return 0;
+              }
+
               if (i > m) {
                 memcpy(buffer, this->webChunkFb_->buf + this->webChunkSent_, m);
                 this->webChunkSent_ += m;
                 return m;
-              }
-
-              if (i <= 0) {
-                ESP_LOGE(TAG_, "Content can't be zero length: %d", i);
-                return 0;
               }
 
               memcpy(buffer, this->webChunkFb_->buf + this->webChunkSent_, i);
@@ -234,24 +232,23 @@ AsyncWebServerResponse *BaseImageWebStream::still(AsyncWebServerRequest *req) {
   AsyncWebServerResponse *response = req->beginResponse(
       JPG_CONTENT_TYPE, this->webStillFb_->len, [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
         try {
-          size_t i = this->webStillFb_->len - this->webStillSent_;
+          size_t i = this->webStillFb_->len - index;
           size_t m = maxLen;
-
-          if (i > m) {
-            memcpy(buffer, this->webStillFb_->buf + this->webStillSent_, m);
-            this->webStillSent_ += m;
-            return m;
-          }
 
           if (i <=0 ) {
             ESP_LOGE(TAG_, "Content can't be zero length: %d", i);
             return 0;
           }
 
-          memcpy(buffer, this->webStillFb_->buf + this->webStillSent_, i);
+          if (i > m) {
+            memcpy(buffer, this->webStillFb_->buf + index, m);
+
+            return m;
+          }
+
+          memcpy(buffer, this->webStillFb_->buf + index, i);
 
           this->base_esp32cam_->return_fb(this->webStillFb_);
-          this->webStillSent_ = 0;
 
           return i;
         } catch (...) {

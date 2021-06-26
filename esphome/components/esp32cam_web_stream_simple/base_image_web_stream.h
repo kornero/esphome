@@ -71,7 +71,6 @@ class BaseImageWebStream : public AsyncWebHandler {
   uint32_t webChunkLastUpdate_;
 
   camera_fb_t *webStillFb_;
-  size_t webStillSent_;
 
   AsyncWebServerResponse *stream(AsyncWebServerRequest *request);
   AsyncWebServerResponse *still(AsyncWebServerRequest *request);
