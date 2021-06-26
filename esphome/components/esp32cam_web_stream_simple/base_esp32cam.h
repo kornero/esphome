@@ -1,3 +1,5 @@
+#pragma once
+
 #include "esphome.h"
 
 #include <esp_camera.h>

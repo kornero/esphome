@@ -1,3 +1,5 @@
+#pragma once
+
 #include "esphome.h"
 
 //#include "esphome/components/base_esp32cam/base_esp32cam.h"
