@@ -114,7 +114,7 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
       req->beginChunkedResponse(STREAM_CONTENT_TYPE, [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
         try {
           // Wait for still image.
-          if (this->webStillFb_ != NULL) {
+          if (this->webStillFb_) {
             return RESPONSE_TRY_AGAIN;
           }
 
