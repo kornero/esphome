@@ -57,25 +57,25 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
       return;
     }
 
-      digitalWrite(33, LOW);  // Turn on
+    digitalWrite(33, LOW);  // Turn on
+
+    this->reset_stream();
+
+    this->isStream = pdTRUE;
+
+    AsyncWebServerResponse *response = this->stream(req);
+    response->addHeader("Access-Control-Allow-Origin", "*");
+    req->onDisconnect([this]() -> void {
+      ESP_LOGI(TAG_, "Disconnected.");
 
       this->reset_stream();
 
-      this->isStream = pdTRUE;
+      digitalWrite(33, HIGH);  // Turn off
+    });
 
-      AsyncWebServerResponse *response = this->stream(req);
-      response->addHeader("Access-Control-Allow-Origin", "*");
-      req->onDisconnect([this]() -> void {
-        ESP_LOGI(TAG_, "Disconnected.");
+    req->send(response);
 
-        this->reset_stream();
-
-        digitalWrite(33, HIGH);  // Turn off
-      });
-
-      req->send(response);
-
-      return;
+    return;
   }
 
   ESP_LOGW(this->TAG_, "Unknown request!");
@@ -142,7 +142,7 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
       req->beginChunkedResponse(STREAM_CONTENT_TYPE, [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
         try {
           // Wait for still image.
-          if( this->isStill == pdTRUE ) {
+          if (this->isStill == pdTRUE) {
             return RESPONSE_TRY_AGAIN;
           }
 
@@ -280,7 +280,7 @@ AsyncWebServerResponse *BaseImageWebStream::still(AsyncWebServerRequest *req) {
           size_t i = this->webChunkFb_->len - index;
           size_t m = maxLen;
 
-          if (i <=0 ) {
+          if (i <= 0) {
             ESP_LOGE(TAG_, "[STILL] Content can't be zero length: %d", i);
             return 0;
           }
@@ -293,7 +293,7 @@ AsyncWebServerResponse *BaseImageWebStream::still(AsyncWebServerRequest *req) {
 
           memcpy(buffer, this->webChunkFb_->buf + index, i);
 
-          if(this->isStream == pdFALSE) {
+          if (this->isStream == pdFALSE) {
             this->base_esp32cam_->return_fb(this->webChunkFb_);
             this->webChunkFb_ = nullptr;
           }
