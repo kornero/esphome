@@ -8,6 +8,32 @@ namespace base_image_web_stream {
 void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
   ESP_LOGI(TAG_,"Handle request.");
 
+  if (req->url() == this->pathStill_) {
+    this->webStillFb_ = this->baseEsp32Cam_->get_fb();
+    if(this->webStillFb_) {
+      AsyncWebServerResponse *response = this->still(req);
+/*
+      response->setCode(200);
+      response->setContentType(JPG_CONTENT_TYPE);
+      response->setContentLength(this->webStillFb_->len);
+*/
+
+      /*response->addHeader("Content-Type", JPG_CONTENT_TYPE);
+
+      char str[256];
+      snprintf(str, sizeof str, "%zu", this->webStillFb_->len);
+      response->addHeader("Content-Length", str);*/
+
+      response->addHeader("Content-Disposition", "inline; filename=capture.jpg");
+
+      req->send(response);
+
+      this->baseEsp32Cam_->return_fb(this->webStillFb_);
+      this->webStillSent_ = 0;
+    }
+    return;
+  }
+
   if (millis() - this->webChunkLastUpdate_ < 5000) {
     ESP_LOGE(this->TAG_, "Already streaming!");
     req->send(500, "text/plain", "Already streaming!");
@@ -17,6 +43,66 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
 
   digitalWrite(33, LOW);  // Turn on
 
+  AsyncWebServerResponse *response = this->stream(req);
+  response->addHeader("Access-Control-Allow-Origin", "*");
+  req->onDisconnect([this]() -> void {
+    ESP_LOGI(TAG_, "Disconnected.");
+
+    //    resetSteps();
+
+    digitalWrite(33, HIGH);  // Turn off
+  });
+
+  req->send(response);
+}
+
+void BaseImageWebStream::setup() {
+  ESP_LOGI(TAG_,"enter setup");
+
+  this->base_->init();
+
+  this->pathStream_ = "/stream";
+  this->pathStill_ = "/still";
+  this->contentType_ = JPG_CONTENT_TYPE;
+  this->maxFps_ = ESP32CAM_WEB_CHUNK_MAX_FPS;
+  this->TAG_ = TAG_BASE_IMAGE_WEB_STREAM;
+
+  this->webChunkStep_ = -1;
+  this->webChunkSent_ = 0;
+  this->webChunkLastUpdate_ = 0;
+
+  this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
+
+  this->base_->add_handler(this);
+}
+
+void BaseImageWebStream::reset_steps() {
+
+  // Clear from old stream.
+  if (this->webChunkFb_) {
+    this->baseEsp32Cam_->return_fb(this->webChunkFb_);
+  }
+
+  this->webChunkSent_ = -1;
+  this->webChunkStep_ = 0;
+  this->webChunkLastUpdate_ = millis();
+}
+
+void BaseImageWebStream::dump_config() {
+  if (psramFound()) {
+    ESP_LOGCONFIG(TAG_, "PSRAM");
+  } else {
+    ESP_LOGCONFIG(TAG_, "PSRAM not found.");
+  }
+
+  ESP_LOGCONFIG(TAG_, "Max FPS %d.", ESP32CAM_WEB_CHUNK_MAX_FPS);
+}
+
+void BaseImageWebStream::set_cam(base_esp32cam::BaseEsp32Cam *cam) {
+  this->baseEsp32Cam_ = cam;
+}
+
+AsyncWebServerResponse* BaseImageWebStream::stream(AsyncWebServerRequest *req) {
   AsyncWebServerResponse *response =
       req->beginChunkedResponse(STREAM_CONTENT_TYPE, [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
         try {
@@ -141,62 +227,35 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
         }
       });
 
-  response->addHeader("Access-Control-Allow-Origin", "*");
-  req->onDisconnect([this]() -> void {
-    ESP_LOGI(TAG_, "Disconnected.");
-
-    //    resetSteps();
-
-    digitalWrite(33, HIGH);  // Turn off
-  });
-
-  req->send(response);
+  return response;
 }
 
-void BaseImageWebStream::setup() {
-  ESP_LOGI(TAG_,"enter setup");
+AsyncWebServerResponse* BaseImageWebStream::still(AsyncWebServerRequest *req) {
+  AsyncWebServerResponse *response =
+      req->beginResponse(JPG_CONTENT_TYPE, this->webStillFb_->len, [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+        try {
+          size_t i = this->webStillFb_->len - this->webStillSent_;
+          size_t m = maxLen;
 
-  this->base_->init();
+          if (m < i) {
+            memcpy(buffer, this->webStillFb_->buf + this->webStillSent_, m);
+            this->webStillSent_ += m;
+            return m;
+          }
 
-  this->pathStream_ = "/stream";
-  this->pathStill_ = "/still";
-  this->contentType_ = JPG_CONTENT_TYPE;
-  this->maxFps_ = ESP32CAM_WEB_CHUNK_MAX_FPS;
-  this->TAG_ = TAG_BASE_IMAGE_WEB_STREAM;
+          memcpy(buffer, this->webStillFb_->buf + this->webStillSent_, i);
 
-  this->webChunkStep_ = -1;
-  this->webChunkSent_ = 0;
-  this->webChunkLastUpdate_ = 0;
+          esp_camera_fb_return(this->webStillFb_);
+          this->webStillSent_ = -1;
 
-  this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
+          return i;
+        } catch (...) {
+          ESP_LOGE(TAG_, "EXCEPTION !");
+          return 0;
+        }
+      });
 
-  this->base_->add_handler(this);
-}
-
-void BaseImageWebStream::reset_steps() {
-
-  // Clear from old stream.
-  if (this->webChunkFb_) {
-    this->baseEsp32Cam_->return_fb(this->webChunkFb_);
-  }
-
-  this->webChunkSent_ = -1;
-  this->webChunkStep_ = 0;
-  this->webChunkLastUpdate_ = millis();
-}
-
-void BaseImageWebStream::dump_config() {
-  if (psramFound()) {
-    ESP_LOGCONFIG(TAG_, "PSRAM");
-  } else {
-    ESP_LOGCONFIG(TAG_, "PSRAM not found.");
-  }
-
-  ESP_LOGCONFIG(TAG_, "Max FPS %d.", ESP32CAM_WEB_CHUNK_MAX_FPS);
-}
-
-void BaseImageWebStream::set_cam(base_esp32cam::BaseEsp32Cam *cam) {
-  this->baseEsp32Cam_ = cam;
+  return response;
 }
 }
 }  // namespace esphome

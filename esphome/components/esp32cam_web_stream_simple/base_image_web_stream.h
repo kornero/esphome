@@ -69,10 +69,15 @@ class BaseImageWebStream : public AsyncWebHandler {
   int maxRate_;
 
   camera_fb_t *webChunkFb_;
-
   int webChunkStep_;
   size_t webChunkSent_;
   uint32_t webChunkLastUpdate_;
+
+  camera_fb_t *webStillFb_;
+  size_t webStillSent_;
+
+  AsyncWebServerResponse* stream(AsyncWebServerRequest *request);
+  AsyncWebServerResponse* still(AsyncWebServerRequest *request);
 };
 
 }  // namespace esp32cam_web_stream_simple
