@@ -184,5 +184,9 @@ void BaseImageWebStream::dump_config() {
 
   ESP_LOGCONFIG(TAG_, "Max FPS %d.", ESP32CAM_WEB_CHUNK_MAX_FPS);
 }
+
+void BaseImageWebStream::set_cam(base_esp32cam::BaseEsp32Cam *cam) {
+  this->baseEsp32Cam_ = cam;
+}
 }
 }  // namespace esphome
