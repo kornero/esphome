@@ -2,7 +2,8 @@
 
 #include "esphome.h"
 
-#include <base_image_web_stream.h>
+#include "esphome/components/base_esp32cam/base_esp32cam.h"
+#include "esphome/components/base_image_web_stream/base_image_web_stream.h"
 
 namespace esphome {
 namespace esp32cam_web_stream_simple {

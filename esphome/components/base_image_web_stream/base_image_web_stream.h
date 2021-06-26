@@ -2,7 +2,8 @@
 
 #include "esphome.h"
 
-#include <esphome/core/base_esp32cam.h>
+#include "esphome/components/base_esp32cam/base_esp32cam.h"
+
 #include <ESPAsyncWebServer.h>
 
 namespace esphome {

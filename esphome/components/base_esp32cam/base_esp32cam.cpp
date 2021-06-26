@@ -1,5 +1,5 @@
 #include "base_esp32cam.h"
-#include <esphome/core/esp32cam_base_settings.h>
+#include "esp32cam_base_settings.h"
 
 static const char *const TAG_WEB_CAM = "web_cam";
 
