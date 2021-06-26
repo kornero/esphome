@@ -9,8 +9,16 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
   ESP_LOGI(TAG_,"Handle request.");
 
   if (req->url() == this->pathStill_) {
+    // Clear old.
+    if(this->webStillFb_) {
+      this->baseEsp32Cam_->return_fb(this->webStillFb_);
+      this->webStillSent_ = 0;
+    }
+
     this->webStillFb_ = this->baseEsp32Cam_->get_fb();
     if(this->webStillFb_) {
+      ESP_LOGW(TAG_, "Start sending still image.");
+
       AsyncWebServerResponse *response = this->still(req);
 /*
       response->setCode(200);
@@ -27,9 +35,8 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
       response->addHeader("Content-Disposition", "inline; filename=capture.jpg");
 
       req->send(response);
-
-      this->baseEsp32Cam_->return_fb(this->webStillFb_);
-      this->webStillSent_ = 0;
+    } else {
+      ESP_LOGW(TAG_, "Can't get image for still.");
     }
     return;
   }
@@ -70,6 +77,8 @@ void BaseImageWebStream::setup() {
   this->webChunkStep_ = -1;
   this->webChunkSent_ = 0;
   this->webChunkLastUpdate_ = 0;
+
+  this->webStillSent_ = 0;
 
   this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
 
@@ -246,7 +255,7 @@ AsyncWebServerResponse* BaseImageWebStream::still(AsyncWebServerRequest *req) {
           memcpy(buffer, this->webStillFb_->buf + this->webStillSent_, i);
 
           esp_camera_fb_return(this->webStillFb_);
-          this->webStillSent_ = -1;
+          this->webStillSent_ = 0;
 
           return i;
         } catch (...) {
