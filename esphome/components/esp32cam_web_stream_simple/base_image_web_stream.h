@@ -30,24 +30,13 @@ class BaseImageWebStream : public AsyncWebHandler, public Component {
  public:
   String pathStream_;
    String pathStill_;
-  const char *contentType_;
+   char *contentType_;
    int maxFps_;
-  const char *const TAG_;
+   char *TAG_;
 
   BaseImageWebStream(web_server_base::WebServerBase *base,
-                     base_esp32cam::BaseEsp32Cam *baseEsp32Cam,
-
-                     String pathStream = "stream",
-                       String pathStill = "still",
-                     const char *contentType = JPG_CONTENT_TYPE,
-                     int maxFps = ESP32CAM_WEB_CHUNK_MAX_FPS,
-                      const char *const tag = TAG_BASE_IMAGE_WEB_STREAM)
-      : pathStream_(pathStream),
-        pathStill_(pathStill),
-        contentType_(contentType),
-        maxFps_(maxFps),
-        TAG_(tag),
-        baseEsp32Cam_(baseEsp32Cam),
+                     base_esp32cam::BaseEsp32Cam *baseEsp32Cam)
+      : baseEsp32Cam_(baseEsp32Cam),
         base_(base) {}
 
   bool canHandle(AsyncWebServerRequest *request) override {
