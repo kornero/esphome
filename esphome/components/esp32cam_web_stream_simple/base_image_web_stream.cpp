@@ -65,8 +65,8 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
   AsyncWebServerResponse *response(AsyncWebServerRequest *req) {
     const uint32_t started = millis();
 
-    return req->beginChunkedResponse(
-        JPG_CONTENT_TYPE, [this, started](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+    return req->beginResponse(
+        JPG_CONTENT_TYPE, 0, [this, started](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
           try {
             base_esp32cam::BaseEsp32Cam *cam = this->base_->get_cam();
 
@@ -175,7 +175,7 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
 
 class BaseImageWebStreamHandler : public AsyncWebHandler {
  public:
-  const char *const TAG = "web_still_image_handler";
+  const char *const TAG = "web_image_stream_handler";
 
   BaseImageWebStreamHandler(BaseImageWebStream *base) : base_(base) {}
 
@@ -244,7 +244,7 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
             if (this->base_->isStill == pdTRUE) {
               this->base_->isStreamPaused = pdTRUE;
 
-              ESP_LOGD(TAG, "Paused value: %d", this->base_->isStreamPaused);
+              ESP_LOGD(TAG, "Stream paused");
 
               return RESPONSE_TRY_AGAIN;
             } else {
