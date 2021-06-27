@@ -4,7 +4,7 @@
 
 namespace esphome {
 namespace base_image_web_stream {
-
+/*
 class BaseImageWebStillHandler : public AsyncWebHandler {
  public:
   const char *const TAG = "STILL";
@@ -59,7 +59,7 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
 
           this->isStill = pdFALSE;
 
-          return;*/
+          return;*//*
         }
       }
 
@@ -137,7 +137,7 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
  protected:
   BaseImageWebStream *base_;
 };
-
+*/
 void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
   ESP_LOGI(TAG_, "Handle request.");
 
@@ -196,7 +196,7 @@ void BaseImageWebStream::setup() {
   this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
 
   this->base_web_server_->add_handler(this);
-  this->base_web_server_->add_handler(new BaseImageWebStillHandler(this));
+  //  this->base_web_server_->add_handler(new BaseImageWebStillHandler(this));
 }
 
 void BaseImageWebStream::reset_stream() {
