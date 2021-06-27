@@ -121,6 +121,8 @@ camera_fb_t *BaseEsp32Cam::next() {
   this->fb_ = esp_camera_fb_get();
   if (this->fb_ == nullptr) {
     ESP_LOGE(TAG, "Camera error! Can't get FB.");
+  } else {
+    ESP_LOGD(TAG, "Got FB ( %d x %d ) = [ %d ].", this->fb_->width, this->fb_->height, this->fb_->len);
   }
 
   this->last_update_ = millis();
@@ -138,6 +140,7 @@ void BaseEsp32Cam::release() {
 void BaseEsp32Cam::release_no_lock() {
   //  xSemaphoreTake(this->lock, 0);
   if (this->fb_ != nullptr) {
+    ESP_LOGD(TAG, "Released FB ( %d x %d ) = [ %d ].", this->fb_->width, this->fb_->height, this->fb_->len);
     esp_camera_fb_return(this->fb_);
   }
 }

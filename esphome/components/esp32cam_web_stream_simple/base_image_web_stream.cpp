@@ -161,11 +161,13 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
     AsyncWebServerResponse *response = this->stream(req);
     response->addHeader("Access-Control-Allow-Origin", "*");
     req->onDisconnect([this]() -> void {
-      ESP_LOGI(TAG_, "Disconnected.");
+      ESP_LOGI(TAG_, "Disconnecting ...");
 
       this->reset_stream();
 
       digitalWrite(33, HIGH);  // Turn off
+
+      ESP_LOGI(TAG_, "... disconnected.");
     });
 
     req->send(response);
@@ -324,7 +326,10 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
               size_t m = maxLen;
 
               if (i <= 0) {
+                ESP_LOGD(TAG_, "Image size = %d , sent = %d", cam->current()->len, this->webChunkSent_);
+
                 ESP_LOGE(TAG_, "Content can't be zero length: %d", i);
+
                 return 0;
               }
 
