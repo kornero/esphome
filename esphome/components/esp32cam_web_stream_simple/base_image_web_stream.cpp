@@ -35,15 +35,21 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
         return;
       }
 
+      ESP_LOGD(TAG, "Call reset");
       this->base_->reset_still();
 
+      ESP_LOGD(TAG, "Turn on flag");
       this->base_->isStill = pdTRUE;
 
       if (this->base_->isStream == pdTRUE) {
+        ESP_LOGD(TAG, "Try to pause stream");
+
         uint32_t now = millis();
         while (this->base_->isStreamPaused.load(std::memory_order_acquire) == pdFALSE && millis() - now < 100) {
           yield();
         }
+
+        ESP_LOGD(TAG, "Check pause result.");
 
         if (this->base_->isStreamPaused.load(std::memory_order_acquire) == pdFALSE) {
           ESP_LOGI(TAG, "Can't pause streaming, continue anyway.");
@@ -57,10 +63,13 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
         }
       }
 
+      ESP_LOGD(TAG, "Check current fb.");
       if (this->base_->webChunkFb_ == nullptr) {
+        ESP_LOGD(TAG, "Need to create fb.");
         while (millis() - this->base_->webChunkLastUpdate_ < this->base_->maxRate_) {
           yield();
         }
+        ESP_LOGD(TAG, "Getting fb.");
         this->base_->webChunkFb_ = this->base_->getCam()->get_fb();
         this->base_->webChunkLastUpdate_ = millis();
       }
@@ -187,7 +196,7 @@ void BaseImageWebStream::setup() {
   this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
 
   this->base_web_server_->add_handler(this);
-  //  this->base_web_server_->add_handler(new BaseImageWebStillHandler(this));
+  this->base_web_server_->add_handler(new BaseImageWebStillHandler(this));
 }
 
 void BaseImageWebStream::reset_stream() {
