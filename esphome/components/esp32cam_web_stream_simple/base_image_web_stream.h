@@ -24,7 +24,7 @@ static const char *const TAG_BASE_IMAGE_WEB_STREAM = "base_image_web_stream";
 namespace esphome {
 namespace base_image_web_stream {
 
-class BaseImageWebStream : public AsyncWebHandler {
+class BaseImageWebStream {
  public:
   String pathStream_;
   String pathStill_;
@@ -37,25 +37,7 @@ class BaseImageWebStream : public AsyncWebHandler {
   BaseImageWebStream(web_server_base::WebServerBase *base, base_esp32cam::BaseEsp32Cam *base_esp32cam)
       : base_web_server_(base), base_esp32cam_(base_esp32cam) {}
 
-  bool canHandle(AsyncWebServerRequest *request) override {
-    ESP_LOGI(TAG_, "Can handle?");
-
-    if (request->method() == HTTP_GET) {
-      if (request->url() == this->pathStream_)
-        return true;
-    }
-
-    ESP_LOGI(TAG_, "Can handle?.... No!");
-
-    return false;
-  }
-
   void setup();
-
-  void handleRequest(AsyncWebServerRequest *req) override;
-
-  void reset_stream();
-  void reset_still();
 
   void dump_config();
 
@@ -66,12 +48,6 @@ class BaseImageWebStream : public AsyncWebHandler {
   base_esp32cam::BaseEsp32Cam *base_esp32cam_;
 
   const char *TAG_;
-
-  volatile int webChunkStep_;
-  volatile size_t webChunkSent_;
-
-  AsyncWebServerResponse *stream(AsyncWebServerRequest *request);
-  AsyncWebServerResponse *still(AsyncWebServerRequest *request);
 };
 
 }  // namespace base_image_web_stream
