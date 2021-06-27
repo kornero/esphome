@@ -8,6 +8,7 @@
 #include "base_esp32cam.h"
 
 #include <ESPAsyncWebServer.h>
+#include <atomic>
 
 #define PART_BOUNDARY "imgboundary"
 static const char *STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
@@ -72,7 +73,7 @@ class BaseImageWebStream : public AsyncWebHandler {
   volatile uint32_t webChunkLastUpdate_;
 
   volatile BaseType_t isStream;
-  volatile BaseType_t isStreamPaused;
+  std::atomic<BaseType_t> isStreamPaused{pdFALSE};
   volatile BaseType_t isStill;
 
   AsyncWebServerResponse *stream(AsyncWebServerRequest *request);
