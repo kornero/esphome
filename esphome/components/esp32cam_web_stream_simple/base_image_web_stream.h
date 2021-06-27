@@ -68,7 +68,7 @@ class BaseImageWebStream : public AsyncWebHandler {
 
   void dump_config();
 
-  base_esp32cam::BaseEsp32Cam *getCam();
+  base_esp32cam::BaseEsp32Cam *get_cam();
 
  protected:
   web_server_base::WebServerBase *base_web_server_;

@@ -11,7 +11,7 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
 
   BaseImageWebStillHandler(BaseImageWebStream *base) : base_(base) {}
 
-  virtual bool canHandle(AsyncWebServerRequest *request) override {
+  bool canHandle(AsyncWebServerRequest *request) override {
     ESP_LOGI(TAG, "Can handle?");
 
     if (request->method() == HTTP_GET) {
@@ -24,7 +24,7 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
     return false;
   }
 
-  virtual void handleRequest(AsyncWebServerRequest *req) override {
+  void handleRequest(AsyncWebServerRequest *req) override {
     ESP_LOGI(TAG, "Handle request.");
 
     if (req->url() == this->base_->pathStill_) {
@@ -70,7 +70,7 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
           yield();
         }
         ESP_LOGD(TAG, "Getting fb.");
-        this->base_->webChunkFb_ = this->base_->getCam()->get_fb();
+        this->base_->webChunkFb_ = this->base_->get_cam()->get_fb();
         this->base_->webChunkLastUpdate_ = millis();
       }
 
@@ -232,7 +232,7 @@ void BaseImageWebStream::dump_config() {
   ESP_LOGCONFIG(TAG_, "Max FPS %d.", this->maxFps_);
 }
 
-base_esp32cam::BaseEsp32Cam *BaseImageWebStream::getCam() { return this->base_esp32cam_; }
+base_esp32cam::BaseEsp32Cam *BaseImageWebStream::get_cam() { return this->base_esp32cam_; }
 
 AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
   AsyncWebServerResponse *response =
