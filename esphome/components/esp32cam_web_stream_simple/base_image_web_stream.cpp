@@ -149,9 +149,12 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
       return;
     }
 
+    ESP_LOGD(TAG_, "Turn on LED.");
     digitalWrite(33, LOW);  // Turn on
 
     this->reset_stream();
+
+    ESP_LOGD(TAG_, "Set stream.");
 
     this->isStream = pdTRUE;
 
@@ -235,6 +238,8 @@ void BaseImageWebStream::dump_config() {
 base_esp32cam::BaseEsp32Cam *BaseImageWebStream::get_cam() { return this->base_esp32cam_; }
 
 AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
+  ESP_LOGD(TAG_, "Starting stream.");
+
   AsyncWebServerResponse *response =
       req->beginChunkedResponse(STREAM_CONTENT_TYPE, [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
         try {
