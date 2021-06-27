@@ -187,7 +187,7 @@ void BaseImageWebStream::setup() {
   this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
 
   this->base_web_server_->add_handler(this);
-  this->base_web_server_->add_handler(new BaseImageWebStillHandler(this));
+  //  this->base_web_server_->add_handler(new BaseImageWebStillHandler(this));
 }
 
 void BaseImageWebStream::reset_stream() {
