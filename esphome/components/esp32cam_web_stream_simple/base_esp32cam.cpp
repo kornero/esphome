@@ -13,28 +13,28 @@ void BaseEsp32Cam::setup() {
   this->init_camera();
 
   global_base_esp32cam = this;
-
-  this->queue_get = xQueueCreate(1, sizeof(camera_fb_t *));
-  this->queue_return = xQueueCreate(1, sizeof(camera_fb_t *));
-
-  xTaskCreate(&BaseEsp32Cam::esp32cam_fb_task,
-              "esp32cam_fb_task",                     // name
-              1024,                                   // stack size
-              nullptr,                                // task pv params
-              ESP_TASK_PRIO_MAX | portPRIVILEGE_BIT,  // priority
-              nullptr                                 // handle
-  );
-
   /*
-  xTaskCreatePinnedToCore(&BaseEsp32Cam::esp32cam_fb_task,
-                          "esp32cam_fb_task",  // name
-                          1024,                // stack size
-                          nullptr,             // task pv params
-                          0,                   // priority
-                          nullptr,             // handle
-                          1                    // core
-  );
-   */
+    this->queue_get = xQueueCreate(1, sizeof(camera_fb_t *));
+    this->queue_return = xQueueCreate(1, sizeof(camera_fb_t *));
+
+    xTaskCreate(&BaseEsp32Cam::esp32cam_fb_task,
+                "esp32cam_fb_task",                     // name
+                1024,                                   // stack size
+                nullptr,                                // task pv params
+                ESP_TASK_PRIO_MAX | portPRIVILEGE_BIT,  // priority
+                nullptr                                 // handle
+    );
+
+    /*
+    xTaskCreatePinnedToCore(&BaseEsp32Cam::esp32cam_fb_task,
+                            "esp32cam_fb_task",  // name
+                            1024,                // stack size
+                            nullptr,             // task pv params
+                            0,                   // priority
+                            nullptr,             // handle
+                            1                    // core
+    );
+     */
 }
 
 void BaseEsp32Cam::init_camera() {
@@ -89,6 +89,8 @@ void BaseEsp32Cam::init_camera() {
 }
 
 camera_fb_t *BaseEsp32Cam::get_fb() {
+  return esp_camera_fb_get();
+  /*
   camera_fb_t *fb;
   xQueueReceive(global_base_esp32cam->queue_get, &fb, portMAX_DELAY);
 
@@ -106,10 +108,12 @@ camera_fb_t *BaseEsp32Cam::get_fb() {
   }
 
   return fb;
-  //    return esp_camera_fb_get();
+   */
 }
 
 camera_fb_t *BaseEsp32Cam::get_fb_nowait() {
+  return this->get_fb();
+  /*
   camera_fb_t *fb;
   if (xQueueReceive(global_base_esp32cam->queue_get, &fb, 0L) != pdTRUE) {
     ESP_LOGV(TAG, "get_fb_nowait: null");
@@ -130,27 +134,31 @@ camera_fb_t *BaseEsp32Cam::get_fb_nowait() {
   }
 
   return fb;
-  //    return esp_camera_fb_get();
+   */
 }
 
 void BaseEsp32Cam::return_fb(camera_fb_t *fb) {
   if (fb != nullptr) {
+    esp_camera_fb_return(fb);
+    /*
     if (xQueueSend(global_base_esp32cam->queue_return, &fb, portMAX_DELAY) != pdTRUE) {
       ESP_LOGE(TAG, "return_fb(): can't return.");
-    }
+    }*/
   } else {
     ESP_LOGW(TAG, "return_fb_nowait(): fb is null.");
   }
 }
 
 void BaseEsp32Cam::return_fb_nowait(camera_fb_t *fb) {
+  this->return_fb(fb);
+  /*
   if (fb != nullptr) {
     if (xQueueSend(global_base_esp32cam->queue_return, &fb, 0) != pdTRUE) {
       ESP_LOGW(TAG, "return_fb_nowait(): can't return.");
     }
   } else {
     ESP_LOGI(TAG, "return_fb_nowait(): fb is null.");
-  }
+  }*/
 }
 
 void BaseEsp32Cam::esp32cam_fb_task(void *pv) {
