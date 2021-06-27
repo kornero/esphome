@@ -35,8 +35,6 @@ class BaseImageWebStream : public AsyncWebHandler {
 
   int maxRate_;
 
-  camera_fb_t *webChunkFb_;
-
   volatile BaseType_t isStream;
   volatile std::atomic<BaseType_t> isStreamPaused{pdFALSE};
   volatile BaseType_t isStill;
@@ -73,6 +71,8 @@ class BaseImageWebStream : public AsyncWebHandler {
  protected:
   web_server_base::WebServerBase *base_web_server_;
   base_esp32cam::BaseEsp32Cam *base_esp32cam_;
+
+  camera_fb_t *webChunkFb_;
 
   const char *TAG_;
 
