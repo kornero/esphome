@@ -84,6 +84,14 @@ void BaseEsp32Cam::init_camera() {
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
     ESP_LOGE(TAG, "Camera init failed!");
+    // Here:
+    //    this->mark_failed();
+
+    // In dump config:
+    //    if (this->is_failed()) {
+    //      ESP_LOGE(TAG, "  Setup Failed: %s", esp_err_to_name(this->init_error_));
+    //      return;
+    //    }
     return;
   }
 }
