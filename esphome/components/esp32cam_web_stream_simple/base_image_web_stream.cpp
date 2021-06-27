@@ -22,11 +22,11 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
 
     if (this->isStream == pdTRUE) {
       uint32_t now = millis();
-      while (this->isStreamPaused.load(std::memory_order_relaxed) == pdFALSE && millis() - now < 100) {
+      while (this->isStreamPaused.load(std::memory_order_acquire) == pdFALSE && millis() - now < 100) {
         yield();
       }
 
-      if (this->isStreamPaused.load(std::memory_order_relaxed) == pdFALSE) {
+      if (this->isStreamPaused.load(std::memory_order_acquire) == pdFALSE) {
         ESP_LOGI(TAG_, "Can't pause streaming, continue anyway.");
         /*
         ESP_LOGE(TAG_, "Can't pause streaming.");
@@ -120,7 +120,7 @@ void BaseImageWebStream::setup() {
   this->webChunkLastUpdate_ = 0;
 
   this->isStream = pdFALSE;
-  this->isStreamPaused.store(pdFALSE, std::memory_order_relaxed);
+  this->isStreamPaused.store(pdFALSE, std::memory_order_release);
   this->isStill = pdFALSE;
 
   this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
@@ -138,7 +138,7 @@ void BaseImageWebStream::reset_stream() {
   this->webChunkLastUpdate_ = millis();
 
   this->isStream = pdFALSE;
-  this->isStreamPaused.store(pdFALSE, std::memory_order_relaxed);
+  this->isStreamPaused.store(pdFALSE, std::memory_order_release);
 }
 
 void BaseImageWebStream::reset_still() {
@@ -167,10 +167,10 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
         try {
           // Wait for still image.
           if (this->isStill == pdTRUE) {
-            this->isStreamPaused.store(pdTRUE, std::memory_order_relaxed);
+            this->isStreamPaused.store(pdTRUE, std::memory_order_release);
             return RESPONSE_TRY_AGAIN;
           } else {
-            this->isStreamPaused.store(pdFALSE, std::memory_order_relaxed);
+            this->isStreamPaused.store(pdFALSE, std::memory_order_release);
           }
 
           if (this->isStream == pdFALSE) {
