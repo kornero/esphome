@@ -112,12 +112,17 @@ camera_fb_t *BaseEsp32Cam::next() {
   //    yield();
   //  }
   if (millis() - this->last_update_ < this->max_rate_) {
-    delay(millis() - this->last_update_);
+    return nullptr;
   }
 
   xSemaphoreTake(this->lock, portMAX_DELAY);
   this->release_no_lock();
+
   this->fb_ = esp_camera_fb_get();
+  if (this->fb_ == nullptr) {
+    ESP_LOGE(TAG, "Camera error! Can't get FB.");
+  }
+
   this->last_update_ = millis();
   xSemaphoreGive(this->lock);
   return this->fb_;
