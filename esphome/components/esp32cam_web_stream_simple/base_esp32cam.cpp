@@ -13,6 +13,7 @@ void BaseEsp32Cam::setup() {
   this->init_camera();
 
   this->fb_ = nullptr;
+  this->last_update_ = millis();
   this->max_fps_ = ESP32CAM_MAX_FPS;
   this->max_rate_ = 1000 / this->max_fps_;  // 15 fps
 
@@ -107,8 +108,11 @@ void BaseEsp32Cam::init_camera() {
 camera_fb_t *BaseEsp32Cam::current() { return this->fb_; }
 
 camera_fb_t *BaseEsp32Cam::next() {
-  while (millis() - this->last_update_ < this->max_rate_) {
-    yield();
+  //  while (millis() - this->last_update_ < this->max_rate_) {
+  //    yield();
+  //  }
+  if (millis() - this->last_update_ < this->max_rate_) {
+    delay(millis() - this->last_update_);
   }
 
   xSemaphoreTake(this->lock, portMAX_DELAY);
