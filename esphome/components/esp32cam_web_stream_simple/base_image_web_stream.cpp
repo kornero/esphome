@@ -182,7 +182,7 @@ void BaseImageWebStream::setup() {
   this->isStill = pdFALSE;
 
   this->base_web_server_->add_handler(this);
-  //  this->base_web_server_->add_handler(new BaseImageWebStillHandler(this));
+  this->base_web_server_->add_handler(new BaseImageWebStillHandler(this));
 }
 
 void BaseImageWebStream::reset_stream() {
