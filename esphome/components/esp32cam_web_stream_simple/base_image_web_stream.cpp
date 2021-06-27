@@ -75,12 +75,14 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
               return 0;
             }
 
-            if (this->base_->isStreamPaused == pdFALSE && millis() - started < 100) {
-              return RESPONSE_TRY_AGAIN;
-            }
+            if (this->base_->isStream == pdTRUE) {
+              if (this->base_->isStreamPaused == pdFALSE && millis() - started < 100) {
+                return RESPONSE_TRY_AGAIN;
+              }
 
-            if (this->base_->isStreamPaused == pdFALSE) {
-              ESP_LOGI(TAG, "Can't pause streaming, continue anyway.");
+              if (this->base_->isStreamPaused == pdFALSE) {
+                ESP_LOGI(TAG, "Can't pause streaming, continue anyway.");
+              }
             }
 
             if (cam->current_or_next() == nullptr) {
@@ -88,6 +90,7 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
               return 0;
             }
 
+            this->webChunkStep_ = 2;  // Disable content length.
             switch (this->webChunkStep_) {
               case 0: {
                 if (maxLen < (strlen(STREAM_CHUNK_CONTENT_LENGTH) + 8)) {
@@ -162,7 +165,7 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
     this->base_->isStill = pdFALSE;
 
     this->webChunkStep_ = 0;
-    this->webChunkSent_ = -1;
+    this->webChunkSent_ = 0;
   }
 
  protected:
