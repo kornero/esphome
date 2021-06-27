@@ -368,7 +368,7 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
                 this->webChunkStep_ = 0;
 
                 if (this->base_->isStill == pdTRUE) {
-                  this->base_->isStreamPaused == pdTRUE;
+                  this->base_->isStreamPaused = pdTRUE;
                   ESP_LOGI(TAG, "Stream is set on pause.");
                 }
 
