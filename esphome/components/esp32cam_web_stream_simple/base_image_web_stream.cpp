@@ -169,6 +169,9 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
           // Wait for still image.
           if (this->isStill == pdTRUE) {
             this->isStreamPaused.store(pdTRUE, std::memory_order_release);
+
+            ESP_LOGD(TAG_, "Paused value: %d", this->isStreamPaused.load(std::memory_order_acquire));
+
             return RESPONSE_TRY_AGAIN;
           } else {
             this->isStreamPaused.store(pdFALSE, std::memory_order_release);
