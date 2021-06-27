@@ -12,15 +12,10 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
   BaseImageWebStillHandler(BaseImageWebStream *base) : base_(base) {}
 
   bool canHandle(AsyncWebServerRequest *request) override {
-    ESP_LOGD(TAG, "Can handle?");
-
     if (request->method() == HTTP_GET) {
       if (request->url() == this->base_->pathStill_)
         return true;
     }
-
-    ESP_LOGD(TAG, "Can handle?.... No!");
-
     return false;
   }
 
@@ -139,9 +134,15 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
 
                 memcpy(buffer, cam->current()->buf + this->webChunkSent_, i);
 
-                this->reset();
+                this->webChunkStep_++;
 
                 return i;
+              }
+
+              case 3: {
+                this->reset();
+
+                return 0;
               }
 
               default:
@@ -183,15 +184,10 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
   BaseImageWebStreamHandler(BaseImageWebStream *base) : base_(base) {}
 
   bool canHandle(AsyncWebServerRequest *request) override {
-    ESP_LOGD(TAG, "Can handle?");
-
     if (request->method() == HTTP_GET) {
       if (request->url() == this->base_->pathStream_)
         return true;
     }
-
-    ESP_LOGD(TAG, "Can handle?.... No!");
-
     return false;
   }
 
@@ -239,19 +235,24 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
     req->send(404, "text/plain", "Unknown request!");
   }
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "readability-function-cognitive-complexity"
   AsyncWebServerResponse *response(AsyncWebServerRequest *req) {
     return req->beginChunkedResponse(
         STREAM_CONTENT_TYPE, [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
           try {
             // Wait for still image.
             if (this->base_->isStill == pdTRUE) {
-              this->base_->isStreamPaused = pdTRUE;
+              if (this->base_->isStreamPaused == pdTRUE) {
+                ESP_LOGD(TAG, "Stream is paused, waiting.");
 
-              ESP_LOGD(TAG, "Stream paused");
-
-              return RESPONSE_TRY_AGAIN;
+                return RESPONSE_TRY_AGAIN;
+              }
             } else {
-              this->base_->isStreamPaused = pdFALSE;
+              if (this->base_->isStreamPaused == pdTRUE) {
+                this->base_->isStreamPaused = pdFALSE;
+                ESP_LOGI(TAG, "Stream unpause.");
+              }
             }
 
             if (this->base_->isStream == pdFALSE) {
@@ -367,6 +368,11 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
 
                 this->webChunkStep_ = 0;
 
+                if (this->base_->isStill == pdTRUE) {
+                  this->base_->isStreamPaused == pdTRUE;
+                  ESP_LOGI(TAG, "Stream is set on pause.");
+                }
+
                 return i;
               }
 
@@ -381,6 +387,7 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
           }
         });
   }
+#pragma clang diagnostic pop
 
   void reset() {
     // Clear from old stream.
