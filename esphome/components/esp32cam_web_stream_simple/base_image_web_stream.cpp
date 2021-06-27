@@ -70,13 +70,13 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
               return 0;
             }
 
-            if (this->base_->isStream == pdTRUE) {
+            if (this->base_->isStream == pdTRUE && this->base_->isStreamPaused == pdFALSE) {
               if (this->base_->isStreamPaused == pdFALSE && millis() - started < 100) {
                 return RESPONSE_TRY_AGAIN;
               }
 
               if (this->base_->isStreamPaused == pdFALSE) {
-                ESP_LOGI(TAG, "Can't pause streaming, continue anyway.");
+                ESP_LOGW(TAG, "Can't pause streaming, continue anyway.");
               }
             }
 
@@ -87,38 +87,11 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
 
             switch (this->webChunkStep_) {
               case 0: {
-                if (maxLen < (strlen(STREAM_CHUNK_CONTENT_LENGTH) + 8)) {
-                  ESP_LOGW(TAG, "Not enough space for content length");
-                  return RESPONSE_TRY_AGAIN;
-                }
-
-                size_t i = sprintf((char *) buffer, STREAM_CHUNK_CONTENT_LENGTH, cam->current()->len);
-
-                this->webChunkStep_++;
-
-                return i;
-              }
-
-              case 1: {
-                size_t i = strlen(STREAM_CHUNK_NEW_LINE);
-                if (maxLen < i) {
-                  ESP_LOGW(TAG, "Not enough space for new line");
-                  return RESPONSE_TRY_AGAIN;
-                }
-
-                memcpy(buffer, STREAM_CHUNK_NEW_LINE, i);
-
-                this->webChunkStep_++;
-
-                return i;
-              }
-
-              case 2: {
-                size_t i = cam->current()->len - this->webChunkSent_;
+                size_t i = cam->current()->len - index;
                 size_t m = maxLen;
 
                 if (i <= 0) {
-                  ESP_LOGD(TAG, "Image size = %d , sent = %d", cam->current()->len, this->webChunkSent_);
+                  ESP_LOGD(TAG, "Image size = %d , sent = %d", cam->current()->len, index);
 
                   ESP_LOGE(TAG, "Content can't be zero length: %d", i);
 
@@ -126,19 +99,18 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
                 }
 
                 if (i > m) {
-                  memcpy(buffer, cam->current()->buf + this->webChunkSent_, m);
-                  this->webChunkSent_ += m;
+                  memcpy(buffer, cam->current()->buf + index, m);
                   return m;
                 }
 
-                memcpy(buffer, cam->current()->buf + this->webChunkSent_, i);
+                memcpy(buffer, cam->current()->buf + index, i);
 
                 this->webChunkStep_++;
 
                 return i;
               }
 
-              case 3: {
+              case 1: {
                 this->reset();
 
                 return 0;
@@ -164,8 +136,7 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
 
     this->base_->isStill = pdFALSE;
 
-    this->webChunkStep_ = 2;  // Skip content length.
-    this->webChunkSent_ = 0;
+    this->webChunkStep_ = 0;
   }
 
  protected:
@@ -173,7 +144,6 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
 
  private:
   int webChunkStep_;
-  size_t webChunkSent_;
 };
 
 class BaseImageWebStreamHandler : public AsyncWebHandler {
