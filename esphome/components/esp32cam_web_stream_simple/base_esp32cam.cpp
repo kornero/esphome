@@ -123,11 +123,13 @@ camera_fb_t *BaseEsp32Cam::next() {
     ESP_LOGE(TAG, "Camera error! Can't get FB.");
   } else {
     ESP_LOGD(TAG, "Got FB ( %d x %d ) = [ %d ].", this->fb_->width, this->fb_->height, this->fb_->len);
-  }
 
-  if (this->fb_->len == 0) {
-    ESP_LOGE(TAG, "Camera error! Got corrupted FB ( %d x %d ) = [ %d ].", this->fb_->width, this->fb_->height,
-             this->fb_->len);
+    if (this->fb_->len == 0) {
+      ESP_LOGE(TAG, "Camera error! Got corrupted FB ( %d x %d ) = [ %d ].", this->fb_->width, this->fb_->height,
+               this->fb_->len);
+
+      release_no_lock();
+    }
   }
 
   this->last_update_ = millis();
