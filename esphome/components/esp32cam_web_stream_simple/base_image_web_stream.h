@@ -28,6 +28,21 @@ namespace base_image_web_stream {
 
 class BaseImageWebStream : public AsyncWebHandler {
  public:
+  String pathStream_;
+  String pathStill_;
+  const char *contentType_;
+  int maxFps_;
+
+  int maxRate_;
+
+  camera_fb_t *webChunkFb_;
+
+  volatile BaseType_t isStream;
+  volatile std::atomic<BaseType_t> isStreamPaused{pdFALSE};
+  volatile BaseType_t isStill;
+
+  volatile uint32_t webChunkLastUpdate_;
+
   BaseImageWebStream(web_server_base::WebServerBase *base, base_esp32cam::BaseEsp32Cam *base_esp32cam)
       : base_web_server_(base), base_esp32cam_(base_esp32cam) {}
 
@@ -36,8 +51,6 @@ class BaseImageWebStream : public AsyncWebHandler {
 
     if (request->method() == HTTP_GET) {
       if (request->url() == this->pathStream_)
-        return true;
-      if (request->url() == this->pathStill_)
         return true;
     }
 
@@ -55,26 +68,16 @@ class BaseImageWebStream : public AsyncWebHandler {
 
   void dump_config();
 
+  base_esp32cam::BaseEsp32Cam *getCam();
+
  protected:
   web_server_base::WebServerBase *base_web_server_;
   base_esp32cam::BaseEsp32Cam *base_esp32cam_;
 
-  String pathStream_;
-  String pathStill_;
-  const char *contentType_;
-  int maxFps_;
   const char *TAG_;
 
-  int maxRate_;
-
-  camera_fb_t *webChunkFb_;
   volatile int webChunkStep_;
   volatile size_t webChunkSent_;
-  volatile uint32_t webChunkLastUpdate_;
-
-  volatile BaseType_t isStream;
-  volatile std::atomic<BaseType_t> isStreamPaused{pdFALSE};
-  volatile BaseType_t isStill;
 
   AsyncWebServerResponse *stream(AsyncWebServerRequest *request);
   AsyncWebServerResponse *still(AsyncWebServerRequest *request);

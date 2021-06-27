@@ -5,73 +5,132 @@
 namespace esphome {
 namespace base_image_web_stream {
 
+class BaseImageWebStillHandler : public AsyncWebHandler {
+ public:
+  const char *const TAG = "STILL";
+
+  BaseImageWebStillHandler(BaseImageWebStream *base) : base_(base) {}
+
+  bool canHandle(AsyncWebServerRequest *request) override {
+    ESP_LOGI(TAG, "Can handle?");
+
+    if (request->method() == HTTP_GET) {
+      if (request->url() == this->base_->pathStill_)
+        return true;
+    }
+
+    ESP_LOGI(TAG, "Can handle?.... No!");
+
+    return false;
+  }
+
+  void handleRequest(AsyncWebServerRequest *req) override {
+    ESP_LOGI(TAG, "Handle request.");
+
+    if (req->url() == this->base_->pathStill_) {
+      if (this->base_->isStill == pdTRUE) {
+        ESP_LOGW(TAG, "Already still image!");
+        req->send(409, "text/plain", "Already still image!");
+
+        return;
+      }
+
+      this->base_->reset_still();
+
+      this->base_->isStill = pdTRUE;
+
+      if (this->base_->isStream == pdTRUE) {
+        uint32_t now = millis();
+        while (this->base_->isStreamPaused.load(std::memory_order_acquire) == pdFALSE && millis() - now < 100) {
+          yield();
+        }
+
+        if (this->base_->isStreamPaused.load(std::memory_order_acquire) == pdFALSE) {
+          ESP_LOGI(TAG, "Can't pause streaming, continue anyway.");
+          /*
+          ESP_LOGE(TAG_, "Can't pause streaming.");
+          req->send(500, "text/plain", "Can't pause streaming.");
+
+          this->isStill = pdFALSE;
+
+          return;*/
+        }
+      }
+
+      if (this->base_->webChunkFb_ == nullptr) {
+        while (millis() - this->base_->webChunkLastUpdate_ < this->base_->maxRate_) {
+          yield();
+        }
+        this->base_->webChunkFb_ = this->base_->getCam()->get_fb();
+        this->base_->webChunkLastUpdate_ = millis();
+      }
+
+      if (!this->base_->webChunkFb_) {
+        ESP_LOGE(TAG, "Can't get image for still.");
+        req->send(500, "text/plain", "Can't get image for still.");
+
+        this->base_->isStill = pdFALSE;
+
+        return;
+      }
+
+      ESP_LOGI(TAG, "Start sending still image.");
+
+      AsyncWebServerResponse *response =
+          req->beginResponse(JPG_CONTENT_TYPE, this->base_->webChunkFb_->len,
+                             [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+                               try {
+                                 if (this->base_->isStill == pdFALSE) {
+                                   ESP_LOGE(TAG, "Not in still mode.");
+                                   return 0;
+                                 }
+
+                                 size_t i = this->base_->webChunkFb_->len - index;
+                                 size_t m = maxLen;
+
+                                 if (i <= 0) {
+                                   ESP_LOGE(TAG, "[STILL] Content can't be zero length: %d", i);
+                                   return 0;
+                                 }
+
+                                 if (i > m) {
+                                   memcpy(buffer, this->base_->webChunkFb_->buf + index, m);
+
+                                   return m;
+                                 }
+
+                                 memcpy(buffer, this->base_->webChunkFb_->buf + index, i);
+
+                                 this->base_->reset_still();
+
+                                 return i;
+                               } catch (...) {
+                                 ESP_LOGE(TAG, "[STILL] EXCEPTION !");
+                                 return 0;
+                               }
+                             });
+
+      response->addHeader("Content-Disposition", "inline; filename=capture.jpg");
+      req->onDisconnect([this]() -> void {
+        ESP_LOGI(TAG, "Disconnected still image.");
+
+        this->base_->reset_still();
+      });
+
+      req->send(response);
+      return;
+    }
+
+    ESP_LOGW(TAG, "Unknown request!");
+    req->send(404, "text/plain", "Unknown request!");
+  }
+
+ protected:
+  BaseImageWebStream *base_;
+};
+
 void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
   ESP_LOGI(TAG_, "Handle request.");
-
-  if (req->url() == this->pathStill_) {
-    if (this->isStill == pdTRUE) {
-      ESP_LOGW(this->TAG_, "Already still image!");
-      req->send(409, "text/plain", "Already still image!");
-
-      return;
-    }
-
-    this->reset_still();
-
-    this->isStill = pdTRUE;
-
-    if (this->isStream == pdTRUE) {
-      uint32_t now = millis();
-      while (this->isStreamPaused.load(std::memory_order_acquire) == pdFALSE && millis() - now < 300) {
-        //        delay(10);
-        yield();
-      }
-
-      if (this->isStreamPaused.load(std::memory_order_acquire) == pdFALSE) {
-        ESP_LOGI(TAG_, "Can't pause streaming, continue anyway.");
-        /*
-        ESP_LOGE(TAG_, "Can't pause streaming.");
-        req->send(500, "text/plain", "Can't pause streaming.");
-
-        this->isStill = pdFALSE;
-
-        return;*/
-      }
-    }
-
-    if (this->webChunkFb_ == nullptr) {
-      while (millis() - this->webChunkLastUpdate_ < this->maxRate_) {
-        //        delay(10);
-        yield();
-      }
-      this->webChunkFb_ = this->base_esp32cam_->get_fb();
-      this->webChunkLastUpdate_ = millis();
-    }
-
-    if (!this->webChunkFb_) {
-      ESP_LOGE(TAG_, "Can't get image for still.");
-      req->send(500, "text/plain", "Can't get image for still.");
-
-      this->isStill = pdFALSE;
-
-      return;
-    }
-
-    ESP_LOGI(TAG_, "Start sending still image.");
-
-    AsyncWebServerResponse *response = this->still(req);
-
-    response->addHeader("Content-Disposition", "inline; filename=capture.jpg");
-    req->onDisconnect([this]() -> void {
-      ESP_LOGI(TAG_, "Disconnected still image.");
-
-      this->reset_still();
-    });
-
-    req->send(response);
-
-    return;
-  }
 
   if (req->url() == this->pathStream_) {
     if (this->isStream == pdTRUE) {
@@ -128,6 +187,7 @@ void BaseImageWebStream::setup() {
   this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
 
   this->base_web_server_->add_handler(this);
+  this->base_web_server_->add_handler(new BaseImageWebStillHandler(this));
 }
 
 void BaseImageWebStream::reset_stream() {
@@ -162,6 +222,8 @@ void BaseImageWebStream::dump_config() {
 
   ESP_LOGCONFIG(TAG_, "Max FPS %d.", this->maxFps_);
 }
+
+base_esp32cam::BaseEsp32Cam *BaseImageWebStream::getCam() { return this->getCam(); }
 
 AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
   AsyncWebServerResponse *response =
@@ -311,41 +373,5 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
   return response;
 }
 
-AsyncWebServerResponse *BaseImageWebStream::still(AsyncWebServerRequest *req) {
-  AsyncWebServerResponse *response = req->beginResponse(
-      JPG_CONTENT_TYPE, this->webChunkFb_->len, [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-        try {
-          if (this->isStill == pdFALSE) {
-            ESP_LOGE(TAG_, "Not in still mode.");
-            return 0;
-          }
-
-          size_t i = this->webChunkFb_->len - index;
-          size_t m = maxLen;
-
-          if (i <= 0) {
-            ESP_LOGE(TAG_, "[STILL] Content can't be zero length: %d", i);
-            return 0;
-          }
-
-          if (i > m) {
-            memcpy(buffer, this->webChunkFb_->buf + index, m);
-
-            return m;
-          }
-
-          memcpy(buffer, this->webChunkFb_->buf + index, i);
-
-          this->reset_still();
-
-          return i;
-        } catch (...) {
-          ESP_LOGE(TAG_, "[STILL] EXCEPTION !");
-          return 0;
-        }
-      });
-
-  return response;
-}
 }  // namespace base_image_web_stream
 }  // namespace esphome
