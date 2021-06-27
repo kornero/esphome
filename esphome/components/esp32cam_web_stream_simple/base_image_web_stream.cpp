@@ -85,7 +85,6 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
               return 0;
             }
 
-            this->webChunkStep_ = 2;  // Disable content length.
             switch (this->webChunkStep_) {
               case 0: {
                 if (maxLen < (strlen(STREAM_CHUNK_CONTENT_LENGTH) + 8)) {
@@ -165,7 +164,7 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
 
     this->base_->isStill = pdFALSE;
 
-    this->webChunkStep_ = 0;
+    this->webChunkStep_ = 2;  // Skip content length.
     this->webChunkSent_ = 0;
   }
 
