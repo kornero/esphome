@@ -21,8 +21,6 @@ static const char *JPG_CONTENT_TYPE = "image/jpeg";
 
 static const char *const TAG_BASE_IMAGE_WEB_STREAM = "base_image_web_stream";
 
-static const int ESP32CAM_WEB_CHUNK_MAX_FPS = 25;
-
 namespace esphome {
 namespace base_image_web_stream {
 
@@ -31,15 +29,10 @@ class BaseImageWebStream : public AsyncWebHandler {
   String pathStream_;
   String pathStill_;
   const char *contentType_;
-  int maxFps_;
-
-  int maxRate_;
 
   volatile BaseType_t isStream;
   volatile std::atomic<BaseType_t> isStreamPaused{pdFALSE};
   volatile BaseType_t isStill;
-
-  volatile uint32_t webChunkLastUpdate_;
 
   BaseImageWebStream(web_server_base::WebServerBase *base, base_esp32cam::BaseEsp32Cam *base_esp32cam)
       : base_web_server_(base), base_esp32cam_(base_esp32cam) {}
@@ -71,8 +64,6 @@ class BaseImageWebStream : public AsyncWebHandler {
  protected:
   web_server_base::WebServerBase *base_web_server_;
   base_esp32cam::BaseEsp32Cam *base_esp32cam_;
-
-  camera_fb_t *webChunkFb_;
 
   const char *TAG_;
 

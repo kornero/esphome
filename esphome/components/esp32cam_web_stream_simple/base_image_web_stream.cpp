@@ -185,18 +185,14 @@ void BaseImageWebStream::setup() {
   this->pathStream_ = "/stream";
   this->pathStill_ = "/still";
   this->contentType_ = JPG_CONTENT_TYPE;
-  this->maxFps_ = ESP32CAM_WEB_CHUNK_MAX_FPS;
   this->TAG_ = TAG_BASE_IMAGE_WEB_STREAM;
 
   this->webChunkStep_ = -1;
   this->webChunkSent_ = 0;
-  this->webChunkLastUpdate_ = 0;
 
   this->isStream = pdFALSE;
   this->isStreamPaused.store(pdFALSE, std::memory_order_release);
   this->isStill = pdFALSE;
-
-  this->maxRate_ = 1000 / this->maxFps_;  // 15 fps
 
   this->base_web_server_->add_handler(this);
   //  this->base_web_server_->add_handler(new BaseImageWebStillHandler(this));
@@ -204,12 +200,10 @@ void BaseImageWebStream::setup() {
 
 void BaseImageWebStream::reset_stream() {
   // Clear from old stream.
-  this->base_esp32cam_->return_fb_nowait(this->webChunkFb_);
-  this->webChunkFb_ = nullptr;
+  this->get_cam()->release();
 
   this->webChunkSent_ = -1;
   this->webChunkStep_ = 0;
-  this->webChunkLastUpdate_ = millis();
 
   this->isStream = pdFALSE;
   this->isStreamPaused.store(pdFALSE, std::memory_order_release);
@@ -218,8 +212,7 @@ void BaseImageWebStream::reset_stream() {
 void BaseImageWebStream::reset_still() {
   // Clear from old stream.
   if (this->isStream == pdFALSE) {
-    this->base_esp32cam_->return_fb_nowait(this->webChunkFb_);
-    this->webChunkFb_ = nullptr;
+    this->get_cam()->release();
   }
 
   this->isStill = pdFALSE;
@@ -231,8 +224,6 @@ void BaseImageWebStream::dump_config() {
   } else {
     ESP_LOGCONFIG(TAG_, "PSRAM not found.");
   }
-
-  ESP_LOGCONFIG(TAG_, "Max FPS %d.", this->maxFps_);
 }
 
 base_esp32cam::BaseEsp32Cam *BaseImageWebStream::get_cam() { return this->base_esp32cam_; }
@@ -259,24 +250,17 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
             return 0;
           }
 
-          if (this->webChunkSent_ == -1) {
-            while (millis() - this->webChunkLastUpdate_ < this->maxRate_) {
-              //              delay(10);
-              yield();
-            }
+          base_esp32cam::BaseEsp32Cam *cam = this->get_cam();
 
-            this->webChunkFb_ = this->base_esp32cam_->get_fb_nowait();
-            if (this->webChunkFb_ == nullptr) {
+          if (this->webChunkSent_ == -1) {
+            if (cam->next() == nullptr) {
               // no frame ready
               ESP_LOGD(TAG_, "No frame ready");
               return RESPONSE_TRY_AGAIN;
             }
 
-            this->webChunkLastUpdate_ = millis();
             this->webChunkSent_ = 0;
           }
-
-          ESP_LOGD(TAG_, "Before switch. Step = %d.", this->webChunkStep_);
 
           switch (this->webChunkStep_) {
             case 0: {
@@ -314,7 +298,7 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
                 return RESPONSE_TRY_AGAIN;
               }
 
-              size_t i = sprintf((char *) buffer, STREAM_CHUNK_CONTENT_LENGTH, this->webChunkFb_->len);
+              size_t i = sprintf((char *) buffer, STREAM_CHUNK_CONTENT_LENGTH, cam->current()->len);
 
               this->webChunkStep_++;
 
@@ -336,7 +320,7 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
             }
 
             case 4: {
-              size_t i = this->webChunkFb_->len - this->webChunkSent_;
+              size_t i = cam->current()->len - this->webChunkSent_;
               size_t m = maxLen;
 
               if (i <= 0) {
@@ -345,15 +329,14 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
               }
 
               if (i > m) {
-                memcpy(buffer, this->webChunkFb_->buf + this->webChunkSent_, m);
+                memcpy(buffer, cam->current()->buf + this->webChunkSent_, m);
                 this->webChunkSent_ += m;
                 return m;
               }
 
-              memcpy(buffer, this->webChunkFb_->buf + this->webChunkSent_, i);
+              memcpy(buffer, cam->current()->buf + this->webChunkSent_, i);
 
-              this->base_esp32cam_->return_fb(this->webChunkFb_);
-              this->webChunkFb_ = nullptr;
+              cam->release();
               this->webChunkSent_ = -1;
 
               this->webChunkStep_++;

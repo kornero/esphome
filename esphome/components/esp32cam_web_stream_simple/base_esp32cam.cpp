@@ -12,6 +12,14 @@ BaseEsp32Cam *global_base_esp32cam;
 void BaseEsp32Cam::setup() {
   this->init_camera();
 
+  this->fb_ = nullptr;
+  this->max_fps_ = ESP32CAM_MAX_FPS;
+  this->max_rate_ = 1000 / this->max_fps_;  // 15 fps
+
+  ESP_LOGCONFIG(TAG, "Max FPS %d.", this->max_fps_);
+
+  this->lock = xSemaphoreCreateMutex();
+
   global_base_esp32cam = this;
   /*
     this->queue_get = xQueueCreate(1, sizeof(camera_fb_t *));
@@ -93,6 +101,35 @@ void BaseEsp32Cam::init_camera() {
     //      return;
     //    }
     return;
+  }
+}
+
+camera_fb_t *BaseEsp32Cam::current() { return this->fb_; }
+
+camera_fb_t *BaseEsp32Cam::next() {
+  while (millis() - this->last_update_ < this->max_rate_) {
+    yield();
+  }
+
+  xSemaphoreTake(this->lock, portMAX_DELAY);
+  this->release_no_lock();
+  this->fb_ = esp_camera_fb_get();
+  this->last_update_ = millis();
+  xSemaphoreGive(this->lock);
+  return this->fb_;
+}
+
+void BaseEsp32Cam::release() {
+  //  xSemaphoreTake(this->lock, 0);
+  xSemaphoreTake(this->lock, portMAX_DELAY);
+  this->release_no_lock();
+  xSemaphoreGive(this->lock);
+}
+
+void BaseEsp32Cam::release_no_lock() {
+  //  xSemaphoreTake(this->lock, 0);
+  if (this->fb_ != nullptr) {
+    esp_camera_fb_return(this->fb_);
   }
 }
 
