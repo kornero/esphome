@@ -125,6 +125,11 @@ camera_fb_t *BaseEsp32Cam::next() {
     ESP_LOGD(TAG, "Got FB ( %d x %d ) = [ %d ].", this->fb_->width, this->fb_->height, this->fb_->len);
   }
 
+  if (this->fb_->len == 0) {
+    ESP_LOGE(TAG, "Camera error! Got corrupted FB ( %d x %d ) = [ %d ].", this->fb_->width, this->fb_->height,
+             this->fb_->len);
+  }
+
   this->last_update_ = millis();
   xSemaphoreGive(this->lock);
   return this->fb_;
@@ -142,6 +147,7 @@ void BaseEsp32Cam::release_no_lock() {
   if (this->fb_ != nullptr) {
     ESP_LOGD(TAG, "Released FB ( %d x %d ) = [ %d ].", this->fb_->width, this->fb_->height, this->fb_->len);
     esp_camera_fb_return(this->fb_);
+    this->fb_ = nullptr;
   }
 }
 
