@@ -23,7 +23,7 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
     if (this->isStream == pdTRUE) {
       uint32_t now = millis();
       while (this->isStreamPaused.load(std::memory_order_acquire) == pdFALSE && millis() - now < 300) {
-        delay(10);
+        //        delay(10);
         yield();
       }
 
@@ -41,7 +41,8 @@ void BaseImageWebStream::handleRequest(AsyncWebServerRequest *req) {
 
     if (this->webChunkFb_ == nullptr) {
       while (millis() - this->webChunkLastUpdate_ < this->maxRate_) {
-        delay(10);
+        //        delay(10);
+        yield();
       }
       this->webChunkFb_ = this->base_esp32cam_->get_fb();
       this->webChunkLastUpdate_ = millis();
@@ -184,7 +185,8 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
 
           if (this->webChunkSent_ == -1) {
             while (millis() - this->webChunkLastUpdate_ < this->maxRate_) {
-              delay(10);
+              //              delay(10);
+              yield();
             }
 
             this->webChunkFb_ = this->base_esp32cam_->get_fb_nowait();
