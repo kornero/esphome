@@ -30,9 +30,9 @@ class BaseImageWebStream : public AsyncWebHandler {
   String pathStill_;
   const char *contentType_;
 
-  volatile BaseType_t isStream;
-  volatile std::atomic<BaseType_t> isStreamPaused{pdFALSE};
-  volatile BaseType_t isStill;
+  BaseType_t isStream;
+  BaseType_t isStreamPaused;
+  BaseType_t isStill;
 
   BaseImageWebStream(web_server_base::WebServerBase *base, base_esp32cam::BaseEsp32Cam *base_esp32cam)
       : base_web_server_(base), base_esp32cam_(base_esp32cam) {}

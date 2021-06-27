@@ -47,47 +47,40 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
       ESP_LOGD(TAG, "Turn on flag");
       this->base_->isStill = pdTRUE;
 
-      if (this->base_->isStream == pdTRUE) {
-        ESP_LOGD(TAG, "Try to pause stream");
-
-        uint32_t now = millis();
-        while (this->base_->isStreamPaused.load(std::memory_order_acquire) == pdFALSE && millis() - now < 100) {
-          yield();
-        }
-
-        ESP_LOGD(TAG, "Check pause result.");
-
-        if (this->base_->isStreamPaused.load(std::memory_order_acquire) == pdFALSE) {
-          ESP_LOGI(TAG, "Can't pause streaming, continue anyway.");
-        }
-      }
-
       base_esp32cam::BaseEsp32Cam *cam = this->base_->get_cam();
-
-      if (cam->current_or_next() == nullptr) {
-        ESP_LOGE(TAG, "Can't get image for still.");
-        req->send(500, "text/plain", "Can't get image for still.");
-
-        this->base_->isStill = pdFALSE;
-
-        return;
-      }
 
       ESP_LOGI(TAG, "Start sending still image.");
 
-      AsyncWebServerResponse *response = req->beginResponse(
-          JPG_CONTENT_TYPE, cam->current()->len, [this, cam](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-            try {
-              if (this->base_->isStill == pdFALSE) {
-                ESP_LOGE(TAG, "Not in still mode.");
-                return 0;
-              }
+      uint32_t started = millis();
 
-              size_t i = cam->current()->len - index;
-              size_t m = maxLen;
+      AsyncWebServerResponse *response =
+          req->beginResponse(JPG_CONTENT_TYPE, cam->current()->len,
+                             [this, cam, started](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+                               try {
+                                 if (this->base_->isStill == pdFALSE) {
+                                   ESP_LOGE(TAG, "Not in still mode.");
+                                   return 0;
+                                 }
 
-              if (i <= 0) {
-                ESP_LOGE(TAG, "[STILL] Content can't be zero length: %d", i);
+                                 if (this->base_->isStreamPaused == pdFALSE && millis() - started < 100) {
+                                   return RESPONSE_TRY_AGAIN;
+                                 } else {
+                                   ESP_LOGI(TAG, "Can't pause streaming, continue anyway.");
+                                 }
+
+                                 if (cam->current_or_next() == nullptr) {
+                                   ESP_LOGE(TAG, "Can't get image for still.");
+
+                                   this->base_->isStill = pdFALSE;
+
+                                   return 0;
+                                 }
+
+                                 size_t i = cam->current()->len - index;
+                                 size_t m = maxLen;
+
+                                 if (i <= 0) {
+                                   ESP_LOGE(TAG, "[STILL] Content can't be zero length: %d", i);
                                    return 0;
                                  }
 
@@ -178,7 +171,7 @@ void BaseImageWebStream::setup() {
   this->webChunkSent_ = 0;
 
   this->isStream = pdFALSE;
-  this->isStreamPaused.store(pdFALSE, std::memory_order_release);
+  this->isStreamPaused = pdFALSE;
   this->isStill = pdFALSE;
 
   this->base_web_server_->add_handler(this);
@@ -193,7 +186,7 @@ void BaseImageWebStream::reset_stream() {
   this->webChunkStep_ = 0;
 
   this->isStream = pdFALSE;
-  this->isStreamPaused.store(pdFALSE, std::memory_order_release);
+  this->isStreamPaused = pdFALSE;
 }
 
 void BaseImageWebStream::reset_still() {
@@ -223,13 +216,13 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
         try {
           // Wait for still image.
           if (this->isStill == pdTRUE) {
-            this->isStreamPaused.store(pdTRUE, std::memory_order_release);
+            this->isStreamPaused = pdTRUE;
 
-            ESP_LOGD(TAG_, "Paused value: %d", this->isStreamPaused.load(std::memory_order_acquire));
+            ESP_LOGD(TAG_, "Paused value: %d", this->isStreamPaused);
 
             return RESPONSE_TRY_AGAIN;
           } else {
-            this->isStreamPaused.store(pdFALSE, std::memory_order_release);
+            this->isStreamPaused = pdFALSE;
           }
 
           if (this->isStream == pdFALSE) {
