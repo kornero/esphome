@@ -243,6 +243,8 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
   AsyncWebServerResponse *response =
       req->beginChunkedResponse(STREAM_CONTENT_TYPE, [this](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
         try {
+          ESP_LOGD(TAG_, "Begin chunk. Step = %d.", this->webChunkStep_);
+
           // Wait for still image.
           if (this->isStill == pdTRUE) {
             this->isStreamPaused.store(pdTRUE, std::memory_order_release);
@@ -260,21 +262,25 @@ AsyncWebServerResponse *BaseImageWebStream::stream(AsyncWebServerRequest *req) {
           }
 
           if (this->webChunkSent_ == -1) {
+            ESP_LOGD(TAG_, "Wait for timeout.");
             while (millis() - this->webChunkLastUpdate_ < this->maxRate_) {
               //              delay(10);
               yield();
             }
 
+            ESP_LOGD(TAG_, "Getting fb.");
             this->webChunkFb_ = this->base_esp32cam_->get_fb_nowait();
             if (this->webChunkFb_ == nullptr) {
               // no frame ready
-              ESP_LOGV(TAG_, "No frame ready");
+              ESP_LOGD(TAG_, "No frame ready");
               return RESPONSE_TRY_AGAIN;
             }
 
             this->webChunkLastUpdate_ = millis();
             this->webChunkSent_ = 0;
           }
+
+          ESP_LOGD(TAG_, "Before switch. Step = %d.", this->webChunkStep_);
 
           switch (this->webChunkStep_) {
             case 0: {
