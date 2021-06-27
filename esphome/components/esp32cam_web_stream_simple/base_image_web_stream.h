@@ -73,7 +73,7 @@ class BaseImageWebStream : public AsyncWebHandler {
   volatile uint32_t webChunkLastUpdate_;
 
   volatile BaseType_t isStream;
-  std::atomic<BaseType_t> isStreamPaused{pdFALSE};
+  volatile std::atomic<BaseType_t> isStreamPaused{pdFALSE};
   volatile BaseType_t isStill;
 
   AsyncWebServerResponse *stream(AsyncWebServerRequest *request);

@@ -17,6 +17,15 @@ void BaseEsp32Cam::setup() {
   this->queue_get = xQueueCreate(1, sizeof(camera_fb_t *));
   this->queue_return = xQueueCreate(1, sizeof(camera_fb_t *));
 
+  xTaskCreate(&BaseEsp32Cam::esp32cam_fb_task,
+              "esp32cam_fb_task",   // name
+              ESP_TASK_MAIN_STACK,  // stack size
+              nullptr,              // task pv params
+              ESP_TASK_MAIN_PRIO,   // priority
+              nullptr               // handle
+  );
+
+  /*
   xTaskCreatePinnedToCore(&BaseEsp32Cam::esp32cam_fb_task,
                           "esp32cam_fb_task",  // name
                           1024,                // stack size
@@ -25,6 +34,7 @@ void BaseEsp32Cam::setup() {
                           nullptr,             // handle
                           1                    // core
   );
+   */
 }
 
 void BaseEsp32Cam::init_camera() {
