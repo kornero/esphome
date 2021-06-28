@@ -62,32 +62,38 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
   AsyncWebServerResponse *response(AsyncWebServerRequest *req) {
     const uint32_t started = millis();
 
-    return req->beginResponse(
-        JPG_CONTENT_TYPE, 0, [this, started](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-          try {
-            //            base_esp32cam::BaseEsp32Cam *cam = this->base_->get_cam();
+    if (true) {
+      const char *c1 = reinterpret_cast<const char *>(capture_jpg);
 
-            if (this->base_->isStill == pdFALSE) {
-              ESP_LOGE(TAG, "Not in still mode.");
-              return 0;
-            }
+      return req->beginResponse_P(200, JPG_CONTENT_TYPE, c1);
+    }
 
-            if (this->base_->isStream == pdTRUE && this->base_->isStreamPaused == pdFALSE) {
-              if (this->base_->isStreamPaused == pdFALSE && millis() - started < 100) {
-                return RESPONSE_TRY_AGAIN;
-              }
+    return req->beginResponse(JPG_CONTENT_TYPE, 0,
+                              [this, started](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+                                try {
+                                  //            base_esp32cam::BaseEsp32Cam *cam = this->base_->get_cam();
 
-              if (this->base_->isStreamPaused == pdFALSE) {
-                ESP_LOGW(TAG, "Can't pause streaming, continue anyway.");
-              }
-            }
+                                  if (this->base_->isStill == pdFALSE) {
+                                    ESP_LOGE(TAG, "Not in still mode.");
+                                    return 0;
+                                  }
 
-            //            if (cam->current_or_next() == nullptr) {
-            //              ESP_LOGE(TAG, "Can't get image for still.");
-            //              return 0;
-            //            }
+                                  if (this->base_->isStream == pdTRUE && this->base_->isStreamPaused == pdFALSE) {
+                                    if (this->base_->isStreamPaused == pdFALSE && millis() - started < 100) {
+                                      return RESPONSE_TRY_AGAIN;
+                                    }
 
-            switch (this->webChunkStep_) {
+                                    if (this->base_->isStreamPaused == pdFALSE) {
+                                      ESP_LOGW(TAG, "Can't pause streaming, continue anyway.");
+                                    }
+                                  }
+
+                                  //            if (cam->current_or_next() == nullptr) {
+                                  //              ESP_LOGE(TAG, "Can't get image for still.");
+                                  //              return 0;
+                                  //            }
+
+                                  switch (this->webChunkStep_) {
               case 0: {
                 //                size_t i = cam->current()->len - index;
                 size_t i = capture_jpg_len - index;
