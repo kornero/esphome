@@ -40,110 +40,29 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
         return;
       }
 
-      ESP_LOGD(TAG, "Call reset");
       this->reset();
-
-      ESP_LOGD(TAG, "Turn on flag");
       this->base_->isStill = pdTRUE;
 
       ESP_LOGI(TAG, "Start sending still image.");
-      AsyncWebServerResponse *response = this->response(req);
+      base_esp32cam::BaseEsp32Cam *cam = this->base_->get_cam();
+      if (cam->current_or_next() == nullptr) {
+        ESP_LOGE(TAG, "Can't get image for still.");
+        req->send(500, "text/plain", "Can't get image for still");
 
-      response->addHeader("Content-Disposition", "inline; filename=capture.jpg");
+        return;
+      } else {
+        AsyncWebServerResponse *response =
+            req->beginResponse_P(200, JPG_CONTENT_TYPE, cam->current()->buf, cam->current()->len);
 
-      req->send(response);
-      return;
+        response->addHeader("Content-Disposition", "inline; filename=capture.jpg");
+
+        req->send(response);
+        return;
+      }
     }
 
     ESP_LOGW(TAG, "Unknown request!");
     req->send(404, "text/plain", "Unknown request!");
-  }
-
-  AsyncWebServerResponse *response(AsyncWebServerRequest *req) {
-    const uint32_t started = millis();
-
-    if (true) {
-      //      const char *c1 = reinterpret_cast<const char *>(capture_jpg);
-      base_esp32cam::BaseEsp32Cam *cam = this->base_->get_cam();
-      if (cam->current_or_next() == nullptr) {
-        ESP_LOGE(TAG, "Can't get image for still.");
-        return nullptr;  // TODO!!!
-      }
-
-      return req->beginResponse_P(200, JPG_CONTENT_TYPE, cam->current()->buf, cam->current()->len);
-    }
-    /*
-
-    return req->beginResponse(JPG_CONTENT_TYPE, 0,
-                              [this, started](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-                                try {
-                                  //            base_esp32cam::BaseEsp32Cam *cam = this->base_->get_cam();
-
-                                  if (this->base_->isStill == pdFALSE) {
-                                    ESP_LOGE(TAG, "Not in still mode.");
-                                    return 0;
-                                  }
-
-                                  if (this->base_->isStream == pdTRUE && this->base_->isStreamPaused == pdFALSE) {
-                                    if (this->base_->isStreamPaused == pdFALSE && millis() - started < 100) {
-                                      return RESPONSE_TRY_AGAIN;
-                                    }
-
-                                    if (this->base_->isStreamPaused == pdFALSE) {
-                                      ESP_LOGW(TAG, "Can't pause streaming, continue anyway.");
-                                    }
-                                  }
-
-                                  //            if (cam->current_or_next() == nullptr) {
-                                  //              ESP_LOGE(TAG, "Can't get image for still.");
-                                  //              return 0;
-                                  //            }
-
-                                  switch (this->webChunkStep_) {
-              case 0: {
-                //                size_t i = cam->current()->len - index;
-                size_t i = capture_jpg_len - index;
-                size_t m = maxLen;
-
-                if (i <= 0) {
-                  //                  ESP_LOGD(TAG, "Image size = %d , sent = %d", cam->current()->len, index);
-
-                  ESP_LOGE(TAG, "Content can't be zero length: %d", i);
-
-                  return 0;
-                }
-
-                if (i > m) {
-                  //                  memcpy(buffer, cam->current()->buf + index, m);
-                  memcpy(buffer, capture_jpg + index, m);
-                  return m;
-                }
-
-                //                memcpy(buffer, cam->current()->buf + index, i);
-                memcpy(buffer, capture_jpg + index, i);
-
-                this->webChunkStep_++;
-
-                return i;
-              }
-
-              case 1: {
-                this->reset();
-
-                return 0;
-              }
-
-              default:
-                ESP_LOGE(TAG, "Wrong step %d", this->webChunkStep_);
-
-                return 0;
-            }
-          } catch (...) {
-            ESP_LOGE(TAG, "EXCEPTION !");
-            return 0;
-          }
-        });
-        */
   }
 
   void reset() {
@@ -153,15 +72,10 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
     }
 
     this->base_->isStill = pdFALSE;
-
-    this->webChunkStep_ = 0;
   }
 
  protected:
   BaseImageWebStream *base_;
-
- private:
-  int webChunkStep_;
 };
 
 class BaseImageWebStreamHandler : public AsyncWebHandler {
