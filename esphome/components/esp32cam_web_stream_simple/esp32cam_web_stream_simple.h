@@ -2,11 +2,6 @@
 
 #include "esphome.h"
 
-//#include "esphome/components/base_esp32cam/base_esp32cam.h"
-//#include "esphome/components/base_image_web_stream/base_image_web_stream.h"
-//#include <base_esp32cam.h>
-//#include <base_image_web_stream.h>
-//#include "base_esp32cam.h"
 #include "base_image_web_stream.h"
 
 namespace esphome {
@@ -21,8 +16,6 @@ class Esp32CamWebStreamSimple : public Component {
   float get_setup_priority() const override;
 
   void dump_config() override;
-  //  void loop() override {
-  //  }
 
  protected:
   web_server_base::WebServerBase *base_;

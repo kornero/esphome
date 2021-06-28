@@ -22,6 +22,28 @@ void BaseEsp32Cam::setup() {
   this->lock_ = xSemaphoreCreateMutex();
 
   global_base_esp32cam = this;
+
+  this->queue_get_ = xQueueCreate(1, sizeof(camera_fb_t *));
+  this->queue_return_ = xQueueCreate(1, sizeof(camera_fb_t *));
+
+  xTaskCreate(&BaseEsp32Cam::esp32cam_fb_task,
+              "esp32cam_fb_task",    // name
+              ESP_TASK_TCPIP_STACK,  // stack size
+              nullptr,               // task pv params
+              ESP_TASK_TCPIP_PRIO,   // priority
+              nullptr                // handle
+  );
+
+  /*
+  xTaskCreatePinnedToCore(&BaseEsp32Cam::esp32cam_fb_task,
+                          "esp32cam_fb_task",  // name
+                          1024,                // stack size
+                          nullptr,             // task pv params
+                          0,                   // priority
+                          nullptr,             // handle
+                          1                    // core
+  );
+   */
 }
 
 void BaseEsp32Cam::init_camera() {
@@ -84,7 +106,7 @@ camera_fb_t *BaseEsp32Cam::next() {
   xSemaphoreTake(this->lock_, portMAX_DELAY);
   this->release_no_lock_();
 
-  this->fb_ = esp_camera_fb_get();
+  xQueueReceive(global_base_esp32cam->queue_get_, &this->fb_, portMAX_DELAY);
   if (this->fb_ == nullptr) {
     ESP_LOGE(TAG, "Camera error! Can't get FB.");
   } else if (this->fb_->len == 0) {
@@ -107,8 +129,18 @@ void BaseEsp32Cam::release() {
 
 void BaseEsp32Cam::release_no_lock_() {
   if (this->fb_ != nullptr) {
-    esp_camera_fb_return(this->fb_);
+    xQueueSend(global_base_esp32cam->queue_return_, &this->fb_, portMAX_DELAY);
     this->fb_ = nullptr;
+  }
+}
+
+void BaseEsp32Cam::esp32cam_fb_task(void *pv) {
+  while (true) {
+    camera_fb_t *fb = esp_camera_fb_get();
+    xQueueSend(global_base_esp32cam->queue_get_, &fb, portMAX_DELAY);
+    // return is no-op for config with 1 fb
+    xQueueReceive(global_base_esp32cam->queue_return_, &fb, portMAX_DELAY);
+    esp_camera_fb_return(fb);
   }
 }
 

@@ -1,6 +1,5 @@
 #include "esp32cam_web_stream_simple.h"
 
-// using namespace esphome;
 namespace esphome {
 namespace esp32cam_web_stream_simple {
 
@@ -15,7 +14,6 @@ void Esp32CamWebStreamSimple::setup() {
   ESP_LOGI(TAG, "Cam.... ok.");
 
   base_image_web_stream::BaseImageWebStream *web = new base_image_web_stream::BaseImageWebStream(this->base_, cam);
-  //  web->set_cam(cam);
   web->setup();
 
   ESP_LOGI(TAG, "Web.... ok.");
