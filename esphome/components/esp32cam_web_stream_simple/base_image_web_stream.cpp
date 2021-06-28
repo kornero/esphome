@@ -64,8 +64,13 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
 
     if (true) {
       //      const char *c1 = reinterpret_cast<const char *>(capture_jpg);
+      base_esp32cam::BaseEsp32Cam *cam = this->base_->get_cam();
+      if (cam->current_or_next() == nullptr) {
+        ESP_LOGE(TAG, "Can't get image for still.");
+        return nullptr;  // TODO!!!
+      }
 
-      return req->beginResponse_P(200, JPG_CONTENT_TYPE, capture_jpg, capture_jpg_len);
+      return req->beginResponse_P(200, JPG_CONTENT_TYPE, cam->current()->buf, cam->current()->len);
     }
     /*
 
