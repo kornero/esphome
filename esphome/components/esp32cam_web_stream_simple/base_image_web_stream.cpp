@@ -2,6 +2,8 @@
 
 #include "base_image_web_stream.h"
 
+#include "JPEGSamples.h"
+
 namespace esphome {
 namespace base_image_web_stream {
 
@@ -63,7 +65,7 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
     return req->beginResponse(
         JPG_CONTENT_TYPE, 0, [this, started](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
           try {
-            base_esp32cam::BaseEsp32Cam *cam = this->base_->get_cam();
+            //            base_esp32cam::BaseEsp32Cam *cam = this->base_->get_cam();
 
             if (this->base_->isStill == pdFALSE) {
               ESP_LOGE(TAG, "Not in still mode.");
@@ -80,18 +82,19 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
               }
             }
 
-            if (cam->current_or_next() == nullptr) {
-              ESP_LOGE(TAG, "Can't get image for still.");
-              return 0;
-            }
+            //            if (cam->current_or_next() == nullptr) {
+            //              ESP_LOGE(TAG, "Can't get image for still.");
+            //              return 0;
+            //            }
 
             switch (this->webChunkStep_) {
               case 0: {
-                size_t i = cam->current()->len - index;
+                //                size_t i = cam->current()->len - index;
+                size_t i = capture_jpg_len - index;
                 size_t m = maxLen;
 
                 if (i <= 0) {
-                  ESP_LOGD(TAG, "Image size = %d , sent = %d", cam->current()->len, index);
+                  //                  ESP_LOGD(TAG, "Image size = %d , sent = %d", cam->current()->len, index);
 
                   ESP_LOGE(TAG, "Content can't be zero length: %d", i);
 
@@ -99,11 +102,13 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
                 }
 
                 if (i > m) {
-                  memcpy(buffer, cam->current()->buf + index, m);
+                  //                  memcpy(buffer, cam->current()->buf + index, m);
+                  memcpy(buffer, capture_jpg + index, m);
                   return m;
                 }
 
-                memcpy(buffer, cam->current()->buf + index, i);
+                //                memcpy(buffer, cam->current()->buf + index, i);
+                memcpy(buffer, capture_jpg + index, i);
 
                 this->webChunkStep_++;
 
