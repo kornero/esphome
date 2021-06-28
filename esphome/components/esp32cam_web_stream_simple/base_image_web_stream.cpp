@@ -63,10 +63,11 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
     const uint32_t started = millis();
 
     if (true) {
-      const char *c1 = reinterpret_cast<const char *>(capture_jpg);
+      //      const char *c1 = reinterpret_cast<const char *>(capture_jpg);
 
-      return req->beginResponse_P(200, JPG_CONTENT_TYPE, c1);
+      return req->beginResponse_P(200, JPG_CONTENT_TYPE, capture_jpg, capture_jpg_len);
     }
+    /*
 
     return req->beginResponse(JPG_CONTENT_TYPE, 0,
                               [this, started](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
@@ -137,6 +138,7 @@ class BaseImageWebStillHandler : public AsyncWebHandler {
             return 0;
           }
         });
+        */
   }
 
   void reset() {
