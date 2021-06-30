@@ -7,7 +7,7 @@ namespace base_esp32cam {
 
 static const char *const TAG = "base_esp32cam";
 
-BaseEsp32Cam *global_base_esp32cam;
+BaseEsp32Cam *global_base_esp32cam_simple;
 
 void BaseEsp32Cam::setup() {
   this->init_camera();
@@ -19,9 +19,9 @@ void BaseEsp32Cam::setup() {
 
   ESP_LOGCONFIG(TAG, "Max FPS %d.", this->max_fps_);
 
-  this->lock_ = xSemaphoreCreateMutex();
+  this->l_ = xSemaphoreCreateBinary();
 
-  global_base_esp32cam = this;
+  global_base_esp32cam_simple = this;
 }
 
 void BaseEsp32Cam::init_camera() {
@@ -81,7 +81,7 @@ camera_fb_t *BaseEsp32Cam::next() {
     return nullptr;
   }
 
-  xSemaphoreTake(this->lock_, portMAX_DELAY);
+  lock_();
   this->release_no_lock_();
 
   this->fb_ = esp_camera_fb_get();
@@ -95,14 +95,14 @@ camera_fb_t *BaseEsp32Cam::next() {
   }
 
   this->last_update_ = millis();
-  xSemaphoreGive(this->lock_);
+  unlock_();
   return this->fb_;
 }
 
 void BaseEsp32Cam::release() {
-  xSemaphoreTake(this->lock_, portMAX_DELAY);
+  lock_();
   this->release_no_lock_();
-  xSemaphoreGive(this->lock_);
+  unlock_();
 }
 
 void BaseEsp32Cam::release_no_lock_() {
@@ -111,6 +111,10 @@ void BaseEsp32Cam::release_no_lock_() {
     this->fb_ = nullptr;
   }
 }
+
+void BaseEsp32Cam::lock_() { xSemaphoreTake(this->l_, portMAX_DELAY); }
+
+void BaseEsp32Cam::unlock_() { xSemaphoreGive(this->l_); }
 
 }  // namespace base_esp32cam
 }  // namespace esphome

@@ -25,7 +25,7 @@ class BaseEsp32Cam {
   }
 
  protected:
-  SemaphoreHandle_t lock_;
+  SemaphoreHandle_t l_;
 
   camera_fb_t *fb_;
   uint32_t last_update_;
@@ -34,9 +34,12 @@ class BaseEsp32Cam {
 
  private:
   void release_no_lock_();
+
+  void lock_();
+  void unlock_();
 };
 
-extern BaseEsp32Cam *global_base_esp32cam;
+extern BaseEsp32Cam *global_base_esp32cam_simple;
 
 }  // namespace base_esp32cam
 }  // namespace esphome
