@@ -90,7 +90,7 @@ camera_fb_t *BaseEsp32Cam::next() {
 
   // Alternative to critical section.
   // Prevent the real time kernel swapping out the task.
-  vTaskSuspendAll();
+  //  vTaskSuspendAll();
 
   // Mutex for the critical section of switching the active frames around
   //  portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
@@ -113,7 +113,7 @@ camera_fb_t *BaseEsp32Cam::next() {
 
   // Alternative to critical section.
   // The operation is complete. Restart the kernel.
-  xTaskResumeAll();
+  //  xTaskResumeAll();
 
   //  portEXIT_CRITICAL(&mux);
 
