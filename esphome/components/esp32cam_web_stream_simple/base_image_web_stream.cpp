@@ -230,18 +230,24 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
               }
 
               case 4: {
-                camera_fb_t *current = cam->current();
+                const camera_fb_t *current = cam->current();
 
-                //                uint8_t * buf = current->buf;
-                //                size_t len = current->len;
-                //                const unsigned char *buf = capture_jpg;
-                //                size_t len = capture_jpg_len;
-                unsigned const char *buf = octo_jpg;
-                size_t len = octo_jpg_len;
+                const uint8_t *buf = current->buf;
+                const size_t len = current->len;
 
-                size_t i = len - this->webChunkSent_;
-                //                size_t m = maxLen;
-                size_t m1 = 1024 * 2;
+                // Test photo.
+                // const unsigned char *buf = capture_jpg;
+                // const size_t len = capture_jpg_len;
+                // Test image.
+                // const unsigned char *buf = octo_jpg;
+                // const size_t len = octo_jpg_len;
+
+                const size_t i = len - this->webChunkSent_;
+
+                // size_t m = maxLen;
+
+                // Use small chunks.
+                const size_t m1 = 1024 * 2;
                 const size_t m = std::min(maxLen, m1);
 
                 if (i <= 0) {
