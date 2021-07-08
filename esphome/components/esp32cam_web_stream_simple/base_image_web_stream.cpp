@@ -234,8 +234,10 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
 
                 //                uint8_t * buf = current->buf;
                 //                size_t len = current->len;
-                const unsigned char *buf = capture_jpg;
-                size_t len = capture_jpg_len;
+                //                const unsigned char *buf = capture_jpg;
+                //                size_t len = capture_jpg_len;
+                unsigned const char *buf = octo_jpg;
+                size_t len = octo_jpg_len;
 
                 size_t i = len - this->webChunkSent_;
                 size_t m = maxLen;
