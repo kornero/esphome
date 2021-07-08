@@ -240,7 +240,9 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
                 size_t len = octo_jpg_len;
 
                 size_t i = len - this->webChunkSent_;
-                size_t m = maxLen;
+                //                size_t m = maxLen;
+                size_t m1 = 1024 * 10;
+                const size_t m = std::min(maxLen, m1);
 
                 if (i <= 0) {
                   ESP_LOGD(TAG, "Image size = %d , sent = %d", len, this->webChunkSent_);
