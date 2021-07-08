@@ -1,6 +1,7 @@
 #include "esphome.h"
 
 #include "base_image_web_stream.h"
+#include "JPEGSamples.h"
 
 namespace esphome {
 namespace base_image_web_stream {
@@ -229,11 +230,18 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
               }
 
               case 4: {
-                size_t i = cam->current()->len - this->webChunkSent_;
+                camera_fb_t *current = cam->current();
+
+                //                uint8_t * buf = current->buf;
+                //                size_t len = current->len;
+                const unsigned char *buf = capture_jpg;
+                size_t len = capture_jpg_len;
+
+                size_t i = len - this->webChunkSent_;
                 size_t m = maxLen;
 
                 if (i <= 0) {
-                  ESP_LOGD(TAG, "Image size = %d , sent = %d", cam->current()->len, this->webChunkSent_);
+                  ESP_LOGD(TAG, "Image size = %d , sent = %d", len, this->webChunkSent_);
 
                   ESP_LOGE(TAG, "Content can't be zero length: %d", i);
 
@@ -241,12 +249,12 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
                 }
 
                 if (i > m) {
-                  memcpy(buffer, cam->current()->buf + this->webChunkSent_, m);
+                  memcpy(buffer, buf + this->webChunkSent_, m);
                   this->webChunkSent_ += m;
                   return m;
                 }
 
-                memcpy(buffer, cam->current()->buf + this->webChunkSent_, i);
+                memcpy(buffer, buf + this->webChunkSent_, i);
 
                 cam->release();
                 this->webChunkSent_ = -1;
