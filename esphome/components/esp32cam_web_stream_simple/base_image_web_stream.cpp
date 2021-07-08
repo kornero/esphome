@@ -241,7 +241,7 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
 
                 size_t i = len - this->webChunkSent_;
                 //                size_t m = maxLen;
-                size_t m1 = 1024 * 5;
+                size_t m1 = 1024 * 4;
                 const size_t m = std::min(maxLen, m1);
 
                 if (i <= 0) {
