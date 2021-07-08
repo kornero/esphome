@@ -246,12 +246,6 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
 
                 // size_t m = maxLen;
 
-                if (millis() - this->max_size_upd > 2000) {
-                  this->max_size_upd = millis();
-                  this->max_size += 10;
-                  ESP_LOGD(TAG, "Max size = %d", this->max_size);
-                }
-
                 // Use small chunks.
                 const size_t m1 = this->max_size;
                 const size_t m = std::min(maxLen, m1);
@@ -276,6 +270,12 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
                 this->webChunkSent_ = -1;
 
                 this->webChunkStep_++;
+
+                if (millis() - this->max_size_upd > 2000) {
+                  this->max_size_upd = millis();
+                  this->max_size += 10;
+                  ESP_LOGD(TAG, "Max size = %d", this->max_size);
+                }
 
                 return i;
               }
