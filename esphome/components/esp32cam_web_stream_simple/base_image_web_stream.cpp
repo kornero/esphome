@@ -246,8 +246,8 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
 
                 // size_t m = maxLen;
 
-                if (this->max_size_cnt > 50) {
-                  this->max_size_cnt = 0;
+                if (millis() - this->max_size_upd > 2000) {
+                  this->max_size_upd = millis();
                   this->max_size += 10;
                   ESP_LOGD(TAG, "Max size = %d", this->max_size);
                 }
@@ -276,7 +276,6 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
                 this->webChunkSent_ = -1;
 
                 this->webChunkStep_++;
-                this->max_size_cnt++;
 
                 return i;
               }
@@ -323,7 +322,7 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
     this->webChunkSent_ = -1;
     this->webChunkStep_ = 0;
     this->max_size = 1024;
-    this->max_size_cnt = 0;
+    this->max_size_upd = millis();
   }
 
  protected:
@@ -333,7 +332,7 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
   int webChunkStep_;
   size_t webChunkSent_;
   size_t max_size;
-  size_t max_size_cnt;
+  uint32_t max_size_upd;
 };
 
 void BaseImageWebStream::setup() {
