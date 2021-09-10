@@ -106,7 +106,7 @@ camera_fb_t *BaseEsp32Cam::next() {
     ESP_LOGE(TAG, "Camera error! Got corrupted FB ( %d x %d ) = [ %d ].", this->fb_->width, this->fb_->height,
              this->fb_->len);
 
-    release_no_lock_();
+    this->release_no_lock_();
   }
 
   this->last_update_ = millis();
