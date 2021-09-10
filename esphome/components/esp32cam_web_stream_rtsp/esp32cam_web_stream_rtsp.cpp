@@ -32,9 +32,11 @@ void Esp32CamWebStreamRtsp::setup() {
   ESP_LOGD(TAG, "Set up RTSP server listener, starting");
   try {
     this->server->begin();
-    ESP_LOGCONFIG(TAG, "Started RTSP server listener");
+    ESP_LOGI(TAG, "Started RTSP server listener");
+    //    ESP_LOGCONFIG(TAG, "Started RTSP server listener");
   } catch (...) {
-    ESP_LOGCONFIG(TAG, "Failed to start RTSP server listener");
+    //    ESP_LOGCONFIG(TAG, "Failed to start RTSP server listener");
+    ESP_LOGE(TAG, "Failed to start RTSP server listener");
     this->mark_failed();
   }
 
@@ -53,8 +55,8 @@ void Esp32CamWebStreamRtsp::loop() {
     base_esp32cam::BaseEsp32Cam *cam = this->baseEsp32Cam_;
     if (cam->current_or_next() == nullptr) {
       ESP_LOGE(TAG, "Can't get image.");
-      this->mark_failed();
-      return;
+      //      this->mark_failed();
+      //      return;
     } else {
       uint8_t *data = cam->current()->buf;
       size_t length = cam->current()->len;
@@ -66,7 +68,10 @@ void Esp32CamWebStreamRtsp::loop() {
 
 float Esp32CamWebStreamRtsp::get_setup_priority() const { return setup_priority::AFTER_WIFI; }
 
-void Esp32CamWebStreamRtsp::dump_config() { this->baseImageWebStream_->dump_config(); }
+void Esp32CamWebStreamRtsp::dump_config() {
+  // TODO:!!!
+  //  this->baseImageWebStream_->dump_config();
+}
 
 dimensions Esp32CamWebStreamRtsp::parse_camera_dimensions_(camera_config_t config) {
   struct dimensions dim = {0, 0};
