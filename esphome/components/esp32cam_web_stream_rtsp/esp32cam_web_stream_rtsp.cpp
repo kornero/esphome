@@ -14,19 +14,106 @@ void Esp32CamWebStreamRtsp::setup() {
 
   ESP_LOGI(TAG, "Cam.... ok.");
 
-  base_image_web_stream::BaseImageWebStream *web = new base_image_web_stream::BaseImageWebStream(this->base_, cam);
+  //  camera_config_t cameraConfig =  cam->get_camera_config();
+  //  this->dim = this->parse_camera_dimensions_(cameraConfig);
+
+  struct dimensions dim = {0, 0};
+  dim.width = 640;
+  dim.height = 480;
+
+  ESP_LOGD(TAG, "Beginning to set up RTSP server listener");
+
+  //  url = "rtsp://" + WiFi.localIP().toString() + ":554/mjpeg/1";
+  this->server = new AsyncRTSPServer(554, dim);
+
+  this->server->onClient([this](void *s) { ESP_LOGD(TAG, "Received RTSP connection"); }, this);
+  this->server->setLogFunction([](String s) { ESP_LOGD(TAG, s.c_str()); }, this);
+
+  ESP_LOGD(TAG, "Set up RTSP server listener, starting");
+  try {
+    this->server->begin();
+    ESP_LOGCONFIG(TAG, "Started RTSP server listener");
+  } catch (...) {
+    ESP_LOGCONFIG(TAG, "Failed to start RTSP server listener");
+    this->mark_failed();
+  }
+
+  //  base_image_web_stream::BaseImageWebStream *web = new base_image_web_stream::BaseImageWebStream(this->base_, cam);
   //  web->set_cam(cam);
-  web->setup();
+  //  web->setup();
 
   ESP_LOGI(TAG, "Web.... ok.");
 
-  this->baseImageWebStream_ = web;
+  //  this->baseImageWebStream_ = web;
   this->baseEsp32Cam_ = cam;
+}
+
+void Esp32CamWebStreamRtsp::loop() {
+  if (this->server->hasClients()) {
+    base_esp32cam::BaseEsp32Cam *cam = this->baseEsp32Cam_;
+    if (cam->current_or_next() == nullptr) {
+      ESP_LOGE(TAG, "Can't get image.");
+      this->mark_failed();
+      return;
+    } else {
+      uint8_t *data = cam->current()->buf;
+      size_t length = cam->current()->len;
+      this->server->pushFrame(data, length);
+      cam->release();
+    }
+  }
 }
 
 float Esp32CamWebStreamRtsp::get_setup_priority() const { return setup_priority::AFTER_WIFI; }
 
 void Esp32CamWebStreamRtsp::dump_config() { this->baseImageWebStream_->dump_config(); }
+
+dimensions Esp32CamWebStreamRtsp::parse_camera_dimensions_(camera_config_t config) {
+  struct dimensions dim = {0, 0};
+  switch (config.frame_size) {
+    case FRAMESIZE_QQVGA:
+      dim.width = 160;
+      dim.height = 120;
+      break;
+    case FRAMESIZE_QCIF:
+      dim.width = 176;
+      dim.height = 144;
+      break;
+    case FRAMESIZE_HQVGA:
+      dim.width = 240;
+      dim.height = 176;
+      break;
+    case FRAMESIZE_QVGA:
+      dim.width = 320;
+      dim.height = 240;
+      break;
+    case FRAMESIZE_CIF:
+      dim.width = 400;
+      dim.height = 296;
+      break;
+    case FRAMESIZE_VGA:
+      dim.width = 640;
+      dim.height = 480;
+      break;
+    case FRAMESIZE_SVGA:
+      dim.width = 800;
+      dim.height = 600;
+      break;
+    case FRAMESIZE_XGA:
+      dim.width = 1024;
+      dim.height = 768;
+      break;
+    case FRAMESIZE_SXGA:
+      dim.width = 1280;
+      dim.height = 1024;
+      break;
+    case FRAMESIZE_UXGA:
+      dim.width = 1600;
+      dim.height = 1200;
+      break;
+  }
+  return dim;
+}
 
 }  // namespace esp32cam_web_stream_rtsp
 }  // namespace esphome
