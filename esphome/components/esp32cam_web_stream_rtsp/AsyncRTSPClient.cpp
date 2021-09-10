@@ -6,6 +6,9 @@
 
 #include "AsyncRTSP.h"
 
+namespace esphome {
+namespace esp32cam_web_stream_rtsp {
+
 #define getRandom() random(65536)
 
 /**
@@ -192,3 +195,6 @@ String RTSPMediaLevelAttributes::toString() {
          // "a=x-dimensions: 640,480\r\n"
          "c=IN IP4 0.0.0.0";
 }
+
+}  // namespace esp32cam_web_stream_rtsp
+}  // namespace esphome

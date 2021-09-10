@@ -8,6 +8,9 @@
 #include "AsyncRTSP.h"
 #include "JPEGHelpers.cpp"
 
+namespace esphome {
+namespace esp32cam_web_stream_rtsp {
+
 AsyncRTSPServer::AsyncRTSPServer(uint16_t port, dimensions dim) : _server(port), _dim(dim) {
   this->client = nullptr;
   this->prevMsec = millis();
@@ -165,3 +168,6 @@ void AsyncRTSPServer::begin() {
   _server.setNoDelay(true);
   _server.begin();
 }
+
+}  // namespace esp32cam_web_stream_rtsp
+}  // namespace esphome

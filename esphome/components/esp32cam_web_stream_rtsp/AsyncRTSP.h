@@ -15,6 +15,9 @@
 #include <WiFiUdp.h>
 #include <stdio.h>
 
+namespace esphome {
+namespace esp32cam_web_stream_rtsp {
+
 typedef std::function<void(void *)> RTSPConnectHandler;
 typedef std::function<void(String)> LogFunction;
 
@@ -176,3 +179,5 @@ class RTSPMediaLevelAttributes {
  public:
   static String toString();
 };
+}  // namespace esp32cam_web_stream_rtsp
+}  // namespace esphome

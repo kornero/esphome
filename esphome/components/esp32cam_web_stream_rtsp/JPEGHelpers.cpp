@@ -4,6 +4,9 @@
 
 #include "Arduino.h"
 
+namespace esphome {
+namespace esp32cam_web_stream_rtsp {
+
 // Image header bytes
 #define JEPG_StartOfImage 0xd8
 #define JPEG_APP_0 0xe0
@@ -163,3 +166,5 @@ bool decodeJPEGfile(BufPtr *start, uint32_t *len, BufPtr *qtable0, BufPtr *qtabl
 
   return true;
 }
+}  // namespace esp32cam_web_stream_rtsp
+}  // namespace esphome
