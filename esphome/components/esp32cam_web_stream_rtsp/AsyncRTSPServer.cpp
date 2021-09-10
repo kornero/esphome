@@ -6,7 +6,7 @@
  */
 
 #include "AsyncRTSP.h"
-#include "JPEGHelpers.cpp"
+#include "JPEGHelpers.h"
 
 namespace esphome {
 namespace esp32cam_web_stream_rtsp {
