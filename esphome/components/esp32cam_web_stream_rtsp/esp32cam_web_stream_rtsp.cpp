@@ -53,14 +53,13 @@ void Esp32CamWebStreamRtsp::setup() {
 void Esp32CamWebStreamRtsp::loop() {
   if (this->server->hasClients()) {
     base_esp32cam::BaseEsp32Cam *cam = this->baseEsp32Cam_;
-    if (cam->current_or_next() == nullptr) {
-      ESP_LOGE(TAG, "Can't get image.");
+    cam->release();
+    if (cam->next() == nullptr) {
+      //      ESP_LOGE(TAG, "Can't get image.");
       //      this->mark_failed();
       //      return;
     } else {
-      uint8_t *data = cam->current()->buf;
-      size_t length = cam->current()->len;
-      this->server->pushFrame(data, length);
+      this->server->pushFrame(cam->current()->buf, cam->current()->len);
       cam->release();
     }
   }
