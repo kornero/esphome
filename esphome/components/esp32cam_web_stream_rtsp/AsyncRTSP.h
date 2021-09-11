@@ -11,6 +11,7 @@
 
 #pragma once
 #include "Arduino.h"
+#include "JPEGHelpers.h"
 #include <AsyncTCP.h>
 #include <WiFiUdp.h>
 #include <stdio.h>
@@ -87,6 +88,7 @@ class AsyncRTSPServer {
   void *thatlog;
 
  private:
+  JPEGHelper *jpegHelper;
   AsyncRTSPClient *client;
   RTSPConnectHandler connectCallback;
   LogFunction loggerCallback;
