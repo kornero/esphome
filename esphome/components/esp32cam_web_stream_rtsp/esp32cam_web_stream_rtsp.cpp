@@ -52,6 +52,13 @@ void Esp32CamWebStreamRtsp::setup() {
 
 void Esp32CamWebStreamRtsp::loop() {
   if (this->server->hasClients()) {
+    camera_fb_t *fb_ = esp_camera_fb_get();
+    if (fb_ != nullptr) {
+      this->server->pushFrame(fb_->buf, fb_->len);
+      esp_camera_fb_return(fb_);
+      fb_ = nullptr;
+    }
+    /*
     base_esp32cam::BaseEsp32Cam *cam = this->baseEsp32Cam_;
     cam->release();
     if (cam->next() == nullptr) {
@@ -61,7 +68,7 @@ void Esp32CamWebStreamRtsp::loop() {
     } else {
       this->server->pushFrame(cam->current()->buf, cam->current()->len);
       cam->release();
-    }
+    }*/
   }
 }
 
