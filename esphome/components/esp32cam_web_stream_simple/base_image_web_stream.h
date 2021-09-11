@@ -9,7 +9,7 @@ namespace esphome {
 namespace base_image_web_stream {
 
 #define PART_BOUNDARY "imgboundary"
-static const char *STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
+static const char *STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=--" PART_BOUNDARY;
 static const char *STREAM_CHUNK_BOUNDARY = "--" PART_BOUNDARY "\r\n";
 static const char *STREAM_CHUNK_CONTENT_TYPE = "Content-Type: %s\r\n";
 static const char *STREAM_CHUNK_CONTENT_LENGTH = "Content-Length: %u\r\n";
