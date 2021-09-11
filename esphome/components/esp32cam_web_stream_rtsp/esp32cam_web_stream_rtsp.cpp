@@ -65,6 +65,8 @@ void Esp32CamWebStreamRtsp::loop() {
       esp_camera_fb_return(fb_);
       fb_ = nullptr;
 
+      ESP_LOGD(TAG, "Sent frame.");
+
       yield();
       delay(50);
     }

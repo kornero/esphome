@@ -63,6 +63,7 @@ void AsyncRTSPServer::pushFrame(uint8_t *data, size_t length) {
     // at this point, "data" points to the address of the scan frames
     do {
       PrepareRTPBufferForClients(this->RTPBuffer, data, length, &bpr, quant0tbl, quant1tbl);
+      yield();  // TODO: Not sure if this is necessary?
       this->client->PushRTPBuffer(this->RTPBuffer, bpr.bufferSize);
       yield();  // TODO: Not sure if this is necessary?
     } while (!bpr.isLastFragment);
