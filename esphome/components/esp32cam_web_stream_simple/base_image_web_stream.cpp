@@ -1,8 +1,8 @@
 #include "esphome.h"
 
 #include "base_image_web_stream.h"
-#include "JPEGSamples.h"
-#include "JPEGHelpers.h"
+//#include "JPEGSamples.h"
+//#include "JPEGHelpers.h"
 
 namespace esphome {
 namespace base_image_web_stream {
@@ -233,13 +233,13 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
               case 4: {
                 const camera_fb_t *current = cam->current();
 
-                uint8_t *buf = current->buf;
-                size_t len = current->len;
+                const uint8_t *buf = current->buf;
+                const size_t len = current->len;
 
-                unsigned char *quant0tbl;
-                unsigned char *quant1tbl;
+                //                unsigned char *quant0tbl;
+                //                unsigned char *quant1tbl;
                 // do not decode every chunk!!!!!!
-                this->jpegHelper_->decodeJPEGfile(&buf, &len, &quant0tbl, &quant1tbl);
+                //                this->jpegHelper_->decodeJPEGfile(&buf, &len, &quant0tbl, &quant1tbl);
 
                 // Test photo.
                 // const unsigned char *buf = capture_jpg;
@@ -330,12 +330,12 @@ class BaseImageWebStreamHandler : public AsyncWebHandler {
     this->max_size = 1024;
     this->max_size_upd = millis();
 
-    this->jpegHelper_ = new esp32cam_web_stream_simple::JPEGHelper();
+    //    this->jpegHelper_ = new esp32cam_web_stream_simple::JPEGHelper();
   }
 
  protected:
   BaseImageWebStream *base_;
-  esp32cam_web_stream_simple::JPEGHelper *jpegHelper_;
+  //  esp32cam_web_stream_simple::JPEGHelper *jpegHelper_;
 
  private:
   int webChunkStep_;
