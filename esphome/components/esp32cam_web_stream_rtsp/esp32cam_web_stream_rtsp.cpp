@@ -32,11 +32,11 @@ void Esp32CamWebStreamRtsp::setup() {
   ESP_LOGD(TAG, "Set up RTSP server listener, starting");
   try {
     this->server->begin();
-    ESP_LOGI(TAG, "Started RTSP server listener");
-    //    ESP_LOGCONFIG(TAG, "Started RTSP server listener");
+    //    ESP_LOGI(TAG, "Started RTSP server listener");
+    ESP_LOGCONFIG(TAG, "Started RTSP server listener");
   } catch (...) {
-    //    ESP_LOGCONFIG(TAG, "Failed to start RTSP server listener");
-    ESP_LOGE(TAG, "Failed to start RTSP server listener");
+    ESP_LOGCONFIG(TAG, "Failed to start RTSP server listener");
+    //    ESP_LOGE(TAG, "Failed to start RTSP server listener");
     this->mark_failed();
   }
 
@@ -66,9 +66,12 @@ void Esp32CamWebStreamRtsp::loop() {
   }
 }
 
-float Esp32CamWebStreamRtsp::get_setup_priority() const { return setup_priority::AFTER_WIFI; }
+float Esp32CamWebStreamRtsp::get_setup_priority() const { return setup_priority::LATE; }
 
 void Esp32CamWebStreamRtsp::dump_config() {
+  ESP_LOGCONFIG(TAG, "RTSP Server:");
+  ESP_LOGCONFIG(TAG, "  Address: %s:%u", network_get_address().c_str(), 554);
+  ESP_LOGCONFIG(TAG, "  Camera Object: %p", this->baseEsp32Cam_);
   // TODO:!!!
   //  this->baseImageWebStream_->dump_config();
 }
