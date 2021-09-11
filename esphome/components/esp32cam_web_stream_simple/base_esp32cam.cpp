@@ -56,7 +56,7 @@ void BaseEsp32Cam::init_camera() {
 
   config.pixel_format = PIXFORMAT_JPEG;
   config.frame_size = FRAMESIZE_VGA;
-  config.jpeg_quality = 0;
+  config.jpeg_quality = 63;
 
   // Camera init
   esp_err_t err = esp_camera_init(&config);
